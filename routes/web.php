@@ -21,6 +21,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/', fn() => redirect()->route('admin.houses.index'));
     Route::get('houses/{house}/report.pdf', [PropertyHouseController::class, 'report'])->name('houses.report');
     Route::resource('houses', PropertyHouseController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
+    Route::patch('houses/{house}/final-result', [PropertyHouseController::class, 'updateFinalResult'])->name('houses.final-result.update');
     Route::post('houses/{house}/areas', [InspectionAreaController::class, 'store'])->name('houses.areas.store');
     Route::patch('houses/{house}/areas/{area}', [InspectionAreaController::class, 'update'])->name('houses.areas.update');
     Route::patch('houses/{house}/areas/{area}/reorder', [InspectionAreaController::class, 'reorder'])->name('houses.areas.reorder');

@@ -42,12 +42,16 @@ class PropertyHouse extends Model
         'parking_count',
         'kitchens_count',
         'total_percentage',
+        'final_result_text',
+        'final_general_notes',
+        'report_delivered_at',
     ];
 
     protected function casts(): array
     {
         return [
             'total_percentage' => 'integer',
+            'report_delivered_at' => 'date',
         ];
     }
 

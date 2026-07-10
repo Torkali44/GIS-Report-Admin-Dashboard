@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\PropertyHouse;
 use App\Services\InspectionReportPdfGenerator;
+use App\Support\ReportCache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -75,6 +76,9 @@ class PropertyHouseController extends Controller
             'parking_count' => ['nullable', 'string', 'max:255'],
             'kitchens_count' => ['nullable', 'string', 'max:255'],
             'total_percentage' => ['nullable', 'integer', 'min:0', 'max:100'],
+            'final_result_text' => ['nullable', 'string', 'max:20000'],
+            'final_general_notes' => ['nullable', 'string', 'max:8000'],
+            'report_delivered_at' => ['nullable', 'date'],
         ]);
 
         $house = PropertyHouse::create([
@@ -124,13 +128,33 @@ class PropertyHouseController extends Controller
             'parking_count' => ['nullable', 'string', 'max:255'],
             'kitchens_count' => ['nullable', 'string', 'max:255'],
             'total_percentage' => ['nullable', 'integer', 'min:0', 'max:100'],
+            'final_result_text' => ['nullable', 'string', 'max:20000'],
+            'final_general_notes' => ['nullable', 'string', 'max:8000'],
+            'report_delivered_at' => ['nullable', 'date'],
         ]);
 
         $house->update($data);
+        ReportCache::clear($house);
 
         return redirect()
             ->route('admin.houses.index')
             ->with('status', 'تم تحديث بيانات المنزل.');
+    }
+
+    public function updateFinalResult(Request $request, PropertyHouse $house): RedirectResponse
+    {
+        $data = $request->validate([
+            'final_result_text' => ['nullable', 'string', 'max:20000'],
+            'final_general_notes' => ['nullable', 'string', 'max:8000'],
+            'report_delivered_at' => ['nullable', 'date'],
+        ]);
+
+        $house->update($data);
+        ReportCache::clear($house);
+
+        return redirect()
+            ->route('admin.houses.show', $house)
+            ->with('status', 'تم حفظ النتيجة النهائية.');
     }
 
     public function show(PropertyHouse $house): View

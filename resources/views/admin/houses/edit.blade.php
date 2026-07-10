@@ -120,7 +120,24 @@
                 <div>
                     <label for="total_percentage" class="mb-1 block text-sm font-medium text-emerald-400">النسبة الإجمالية (0 - 100)</label>
                     <input id="total_percentage" name="total_percentage" type="number" min="0" max="100" value="{{ old('total_percentage', $house->total_percentage) }}" class="w-full rounded-lg border border-emerald-500/30 bg-slate-950 px-3 py-2 text-white focus:border-emerald-500 focus:outline-none">
+                    <p class="mt-1 text-xs text-slate-500">تُستخدم في بداية التقرير وصفحة النتيجة النهائية ({{ \App\Support\InspectionScoreLabels::label((int) old('total_percentage', $house->total_percentage)) }}).</p>
                 </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <h2 class="text-xl font-semibold text-amber-400 border-b border-slate-800 pb-2">النتيجة النهائية للتقرير</h2>
+            <div>
+                <label for="final_result_text" class="mb-1 block text-sm font-medium text-slate-300">نص النتيجة النهائية</label>
+                <textarea id="final_result_text" name="final_result_text" rows="10" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white leading-relaxed focus:border-amber-500 focus:outline-none">{{ old('final_result_text', $house->final_result_text) }}</textarea>
+            </div>
+            <div>
+                <label for="final_general_notes" class="mb-1 block text-sm font-medium text-slate-300">ملاحظات عامة</label>
+                <textarea id="final_general_notes" name="final_general_notes" rows="4" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white leading-relaxed focus:border-amber-500 focus:outline-none">{{ old('final_general_notes', $house->final_general_notes) }}</textarea>
+            </div>
+            <div class="max-w-xs">
+                <label for="report_delivered_at" class="mb-1 block text-sm font-medium text-slate-300">تاريخ تسليم التقرير</label>
+                <input id="report_delivered_at" name="report_delivered_at" type="date" value="{{ old('report_delivered_at', optional($house->report_delivered_at)->format('Y-m-d')) }}" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white focus:border-amber-500 focus:outline-none">
             </div>
         </div>
 

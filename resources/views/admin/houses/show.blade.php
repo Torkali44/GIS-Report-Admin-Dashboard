@@ -35,6 +35,7 @@
                 <span class="text-sm font-bold text-slate-500 uppercase tracking-wider">النسبة الإجمالية:</span>
                 @php
                     $totalColor = 'text-slate-400';
+                    $totalLabel = \App\Support\InspectionScoreLabels::label((int) $house->total_percentage);
                     if ($house->total_percentage >= 80)
                         $totalColor = 'text-emerald-500';
                     elseif ($house->total_percentage >= 60)
@@ -43,6 +44,7 @@
                         $totalColor = 'text-amber-500';
                 @endphp
                 <span class="text-2xl font-black {{ $totalColor }}">{{ $house->total_percentage }}%</span>
+                <span class="text-sm font-bold text-slate-400">({{ $totalLabel }})</span>
             </div>
         </div>
         <div class="flex items-center gap-3">
@@ -233,6 +235,8 @@
                         <p class="mt-2 text-slate-500">ابدأ بإضافة الأقسام والنسب المئوية من القائمة الجانبية.</p>
                     </div>
                 @endforelse
+
+            @include('admin.houses._final_result_form')
         </div>
     </div>
 
