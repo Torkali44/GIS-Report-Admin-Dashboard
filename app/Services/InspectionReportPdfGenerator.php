@@ -314,11 +314,11 @@ HTML,
     
     <h2 style="font-family:arialbd; color:#c00000; font-size:11pt; text-decoration:underline; margin-top:3px; margin-bottom:3px;">ضمانات GIS:</h2>
     <p style="font-size:9.5pt; margin-top:0px; margin-bottom:3px;">• <strong>ضمان الإحاطة:</strong> يشمل شمولية ودقة البيانات وفق معايير الشركة.</p>
-    <p style="font-size:9.5pt; color:#008000; font-weight:bold; margin-top:0px; margin-bottom:0px;"><span style="color:#008000; font-weight:bold; font-size:11pt;">✔</span> شرح ضمان الإحاطة</p>
+    <p style="font-size:9.5pt; color:#008000; font-weight:bold; margin-top:0px; margin-bottom:0px;"><span style="color:#008000; font-weight:bold; font-size:11pt;">*</span> شرح ضمان الإحاطة</p>
     <p style="font-size:9pt; color:#222; margin-top:0px; margin-bottom:6px;">تقديم تقرير شامل قدر الإمكان عن حالة العقار الظاهرة، بناءً على المعايير الفنية المتبعة داخل الشركة. لا يُعد هذا ضمانًا قانونيًا أو فنيًا لحالة العقار المستقبلية أو للعيوب المخفية.</p>
 
     <p style="font-size:9.5pt; margin-top:0px; margin-bottom:3px;">• <strong>ضمان السلامة:</strong> التأكد من خلو البنود المفحوصة من العيوب الخطرة، والرجوع لشهادات الضمان إن وجدت.</p>
-    <p style="font-size:9.5pt; color:#008000; font-weight:bold; margin-top:0px; margin-bottom:0px;"><span style="color:#008000; font-weight:bold; font-size:11pt;">✔</span> شرح ضمان السلامة</p>
+    <p style="font-size:9.5pt; color:#008000; font-weight:bold; margin-top:0px; margin-bottom:0px;"><span style="color:#008000; font-weight:bold; font-size:11pt;">*</span> شرح ضمان السلامة</p>
     <p style="font-size:9pt; color:#222; margin-top:0px; margin-bottom:6px;">يُقصد به التأكد من عدم وجود عيوب خطرة في العناصر المفحوصة وقت الفحص، وفق المشاهدات الظاهرة. في حال توفر شهادات ضمان للعناصر مثل الكهرباء أو السباكة أو التكييف، يتم الرجوع إليها دون أن تتحمل الشركة مسؤولية صلاحيتها.</p>
 
     <h2 style="font-family:arialbd; color:#c00000; font-size:11pt; text-decoration:underline; margin-top:5px; margin-bottom:3px;">امتيازاتنا:</h2>
@@ -374,7 +374,7 @@ HTML,
     <p style="font-size:9.5pt; color:#222; margin-top:0px; margin-bottom:6px;">تلتزم شركة <strong>GIS</strong> بتقديم خدماتها بأقصى درجات الدقة والحيادية، باستخدام أدوات تقنية ومن خلال خبراء مختصين. مع ذلك، لا تتحمل الشركة أي مسؤولية قانونية أو مادية عن الأضرار الناتجة عن عملية الفحص, سواء أثناء المعاينة أو بعدها.</p>
     <p style="font-size:9.5pt; color:#222; margin-top:0px; margin-bottom:6px;">كما لا تتحمل الشركة أي التزامات ناتجة عن نزاعات بين العميل وأطراف أخرى مثل المقاول أو المطور، إذ تقتصر مسؤوليتنا على التشخيص والتوثيق فقط.</p>
 
-    <h2 style="font-family:arialbd; color:#c00000; font-size:11pt; margin-top:5px; margin-bottom:3px;"><span style="color:#c00000; font-weight:bold; font-size:11pt;">✖</span> تنويه هام:</h2>
+    <h2 style="font-family:arialbd; color:#c00000; font-size:11pt; margin-top:5px; margin-bottom:3px;"><span style="color:#c00000; font-weight:bold; font-size:11pt;">*</span> تنويه هام:</h2>
     <p style="font-size:9pt; color:#222; margin-top:0px; margin-bottom:6px;">تقتصر مهمة شركة GIS على فحص وتوثيق الحالة الظاهرة للعقار وقت المعاينة فقط. ولا يُعد التقرير الصادر عنها التزامًا بضمان مستقبلي لحالة العقار أو لأي تطورات قد تطرأ لاحقًا. تنتهي مسؤولية الشركة بشكل كامل فور انتهاء الفحص ومغادرة الفريق للموقع، ما لم يتم الاتفاق المسبق على خدمة متابعة أو فحص إضافي.</p>
 
     <h2 style="font-family:arialbd; color:#c00000; font-size:11pt; text-decoration:underline; margin-top:5px; margin-bottom:3px;">الأسئلة الشائعة</h2>
@@ -887,7 +887,7 @@ HTML,
             '',
             '',
             '<div dir="rtl" style="font-size:11pt;text-align:right;">'
-            . 'تقييم الفاحص لحالة العقار (<b>' . e($rating) . '</b>)'
+            . 'تقييم الفاحص لحالة العقار (<b>' . e($rating) . '</b>('
             . '</div>',
             0,
             1,
