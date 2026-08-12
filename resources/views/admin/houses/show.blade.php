@@ -100,15 +100,15 @@
                         <select name="name" x-model="selectedSection" @change="onSectionChange()" required
                             class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white focus:border-emerald-500 focus:outline-none">
                             <option value="">-- اختر القسم --</option>
-                            @foreach($readySections as $sec)
+                            @foreach($readySections->unique('name') as $sec)
                                 <option value="{{ $sec->name }}">{{ $sec->name }}</option>
                             @endforeach
                             <option value="__custom__">أخرى (إدخال يدوي)</option>
                         </select>
-                        <input x-cloak x-show="selectedSection === '__custom__'" x-model="customSection" type="text"
+                        <input x-show="selectedSection === '__custom__' || selectedSection === ''" x-model="customSection" @input="onCustomSectionInput()" type="text"
                             name="custom_section_name"
-                            x-bind:disabled="selectedSection !== '__custom__'"
-                            :required="selectedSection === '__custom__'"
+                            x-bind:disabled="selectedSection !== '__custom__' && selectedSection !== ''"
+                            :required="selectedSection === '__custom__' || selectedSection === ''"
                             class="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white focus:border-emerald-500 focus:outline-none"
                             placeholder="أدخل اسم القسم">
                     </div>
@@ -249,8 +249,8 @@
     </div>
 
         {{-- Data for Alpine --}}
-    <script type="application/json" id="categories-json-data">{!! $categoriesJson !!}</script>
-    <script type="application/json" id="ready-sections-json-data">{!! $readySectionsJson !!}</script>
+    <script type="application/json" id="categories-json-data">{!! \Illuminate\Support\Js::encode($categories) !!}</script>
+    <script type="application/json" id="ready-sections-json-data">{!! \Illuminate\Support\Js::encode($readySections) !!}</script>
     </div>
 @endsection
 

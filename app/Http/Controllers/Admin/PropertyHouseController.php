@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\NoteCategory;
 use App\Models\PropertyHouse;
+use App\Models\ReadySection;
 use App\Services\InspectionReportPdfGenerator;
+use App\Services\InspectionReportWordGenerator;
 use App\Support\ReportCache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -144,10 +147,10 @@ class PropertyHouseController extends Controller
     public function updateFinalResult(Request $request, PropertyHouse $house): RedirectResponse
     {
         $data = $request->validate([
-            'final_result_text'          => ['nullable', 'string', 'max:20000'],
-            'final_general_notes'        => ['nullable', 'string', 'max:8000'],
-            'report_delivered_at'        => ['nullable', 'date'],
-            'inspector_rating_override'  => ['nullable', 'string', 'in:ممتاز,جيد جداً,جيد,متوسط,ضعيف,'],
+            'final_result_text' => ['nullable', 'string', 'max:20000'],
+            'final_general_notes' => ['nullable', 'string', 'max:8000'],
+            'report_delivered_at' => ['nullable', 'date'],
+            'inspector_rating_override' => ['nullable', 'string', 'in:ممتاز,جيد جداً,جيد,متوسط,ضعيف,'],
         ]);
 
         // Empty string means "use auto rating" — store as null
@@ -169,27 +172,23 @@ class PropertyHouseController extends Controller
             'inspectionAreas' => fn ($q) => $q->orderBy('sort_order')->orderBy('id'),
         ]);
 
-        $reportNo = $house->reference_code ?: ('H-' . $house->id);
+        $reportNo = $house->reference_code ?: ('H-'.$house->id);
         $reportDate = ($house->created_at ?: now())->format('Y-m-d');
         $clientName = trim((string) ($house->buyer_name ?? $house->client_name ?? '')) ?: '---';
         $propertyAddress = collect([
-            $house->villa_number ? 'فيلا ' . $house->villa_number : null,
-            $house->road ? 'طريق ' . $house->road : null,
-            $house->compound ? 'مجمع ' . $house->compound : null,
+            $house->villa_number ? 'فيلا '.$house->villa_number : null,
+            $house->road ? 'طريق '.$house->road : null,
+            $house->compound ? 'مجمع '.$house->compound : null,
             $house->area ?: null,
         ])->filter()->implode('  ') ?: ($house->address ?: $house->title);
 
-        $categories = \App\Models\NoteCategory::with(['readyNotes', 'recommendationTemplates'])->orderBy('sort_order')->get();
-        $categoriesJson = $categories->toJson();
-        $readySections = \App\Models\ReadySection::with('noteCategory')->orderBy('sort_order')->get();
-        $readySectionsJson = $readySections->toJson();
+        $categories = NoteCategory::with(['readyNotes', 'recommendationTemplates'])->orderBy('sort_order')->get();
+        $readySections = ReadySection::with('noteCategory')->orderBy('sort_order')->get();
 
         return view('admin.houses.show', compact(
             'house',
             'categories',
-            'categoriesJson',
             'readySections',
-            'readySectionsJson',
             'reportNo',
             'reportDate',
             'clientName',
@@ -199,6 +198,8 @@ class PropertyHouseController extends Controller
 
     public function destroy(PropertyHouse $house): RedirectResponse
     {
+        // Generated reports contain client and property data. Remove any legacy public copy.
+        ReportCache::clear($house);
         $house->delete();
 
         return redirect()
@@ -208,30 +209,32 @@ class PropertyHouseController extends Controller
 
     public function report(Request $request, PropertyHouse $house, InspectionReportPdfGenerator $generator): Response
     {
-        $filename = 'inspection-' . $house->id . '.pdf';
-        $disk = \Illuminate\Support\Facades\Storage::disk('public');
-        $path = "reports/{$filename}";
+        $filename = 'inspection-'.$house->id.'.pdf';
 
-        // Always generate fresh PDF so edits appear immediately in the report
+        // Do not persist reports to the public disk: they contain client and property data.
+        ReportCache::clear($house);
         $binary = $generator->renderBinary($house);
-        $disk->put($path, $binary);
 
         $disposition = $request->query('inline') ? 'inline' : 'attachment';
 
         return response($binary, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => $disposition . '; filename="' . $filename . '"',
+            'Content-Disposition' => $disposition.'; filename="'.$filename.'"',
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 
-    public function reportWord(PropertyHouse $house, \App\Services\InspectionReportWordGenerator $generator): Response
+    public function reportWord(PropertyHouse $house, InspectionReportWordGenerator $generator): Response
     {
-        $filename = 'inspection-' . $house->id . '.docx';
+        $filename = 'inspection-'.$house->id.'.docx';
         $binary = $generator->renderBinary($house);
 
         return response($binary, 200, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 }
