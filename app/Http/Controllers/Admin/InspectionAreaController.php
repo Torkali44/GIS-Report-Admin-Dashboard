@@ -26,17 +26,20 @@ class InspectionAreaController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'score' => ['nullable', 'integer', 'min:0', 'max:100'],
-            'notes_list' => ['nullable', 'array'],
-            'notes_list.*' => ['nullable', 'string', 'max:2000'],
-            'recommendations_list' => ['nullable', 'array'],
-            'recommendations_list.*' => ['nullable', 'string', 'max:2000'],
+            'notes_text' => ['nullable', 'string', 'max:20000'],
+            'notes_list' => ['nullable'],
+            'recommendations_text' => ['nullable', 'string', 'max:20000'],
+            'recommendations_list' => ['nullable'],
         ], [
             'name.required' => 'يرجى اختيار أو كتابة "اسم القسم" قبل الحفظ.',
             'score.integer' => 'حقل "النسبة" يجب أن يكون رقماً صحيحاً.',
         ]);
 
-        $notes = InspectionTextLists::normalize($data['notes_list'] ?? []);
-        $recs = InspectionTextLists::normalize($data['recommendations_list'] ?? []);
+        $rawNotes = $request->filled('notes_text') ? $data['notes_text'] : ($data['notes_list'] ?? []);
+        $rawRecs = $request->filled('recommendations_text') ? $data['recommendations_text'] : ($data['recommendations_list'] ?? []);
+
+        $notes = InspectionTextLists::normalize($rawNotes);
+        $recs = InspectionTextLists::normalize($rawRecs);
 
         $max = (int) $house->inspectionAreas()->max('sort_order');
         $area = $house->inspectionAreas()->create([
@@ -67,17 +70,20 @@ class InspectionAreaController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'score' => ['nullable', 'integer', 'min:0', 'max:100'],
-            'notes_list' => ['nullable', 'array'],
-            'notes_list.*' => ['nullable', 'string', 'max:2000'],
-            'recommendations_list' => ['nullable', 'array'],
-            'recommendations_list.*' => ['nullable', 'string', 'max:2000'],
+            'notes_text' => ['nullable', 'string', 'max:20000'],
+            'notes_list' => ['nullable'],
+            'recommendations_text' => ['nullable', 'string', 'max:20000'],
+            'recommendations_list' => ['nullable'],
         ], [
             'name.required' => 'يرجى اختيار أو كتابة "اسم القسم" قبل الحفظ.',
             'score.integer' => 'حقل "النسبة" يجب أن يكون رقماً صحيحاً.',
         ]);
 
-        $notes = InspectionTextLists::normalize($data['notes_list'] ?? []);
-        $recs = InspectionTextLists::normalize($data['recommendations_list'] ?? []);
+        $rawNotes = $request->filled('notes_text') ? $data['notes_text'] : ($data['notes_list'] ?? []);
+        $rawRecs = $request->filled('recommendations_text') ? $data['recommendations_text'] : ($data['recommendations_list'] ?? []);
+
+        $notes = InspectionTextLists::normalize($rawNotes);
+        $recs = InspectionTextLists::normalize($rawRecs);
 
         $area->update([
             'name' => $data['name'],

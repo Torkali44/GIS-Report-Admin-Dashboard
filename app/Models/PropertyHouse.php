@@ -42,6 +42,7 @@ class PropertyHouse extends Model
         'parking_count',
         'kitchens_count',
         'total_percentage',
+        'inspector_rating_override',
         'final_result_text',
         'final_general_notes',
         'report_delivered_at',

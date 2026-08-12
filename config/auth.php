@@ -114,4 +114,19 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Default Admin Credentials
+    |--------------------------------------------------------------------------
+    |
+    | Initial admin user details seeded into the database. Configured via .env
+    | so credentials are not exposed in public repositories.
+    |
+    */
+    'admin' => [
+        'name' => env('ADMIN_NAME', 'GIS_ADMIN'),
+        'email' => env('ADMIN_EMAIL', 'admin@example.com'),
+        'password' => env('ADMIN_PASSWORD', 'change_this_secure_password'),
+    ],
+
 ];

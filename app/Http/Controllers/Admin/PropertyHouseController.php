@@ -144,10 +144,16 @@ class PropertyHouseController extends Controller
     public function updateFinalResult(Request $request, PropertyHouse $house): RedirectResponse
     {
         $data = $request->validate([
-            'final_result_text' => ['nullable', 'string', 'max:20000'],
-            'final_general_notes' => ['nullable', 'string', 'max:8000'],
-            'report_delivered_at' => ['nullable', 'date'],
+            'final_result_text'          => ['nullable', 'string', 'max:20000'],
+            'final_general_notes'        => ['nullable', 'string', 'max:8000'],
+            'report_delivered_at'        => ['nullable', 'date'],
+            'inspector_rating_override'  => ['nullable', 'string', 'in:ممتاز,جيد جداً,جيد,متوسط,ضعيف,'],
         ]);
+
+        // Empty string means "use auto rating" — store as null
+        if (isset($data['inspector_rating_override']) && $data['inspector_rating_override'] === '') {
+            $data['inspector_rating_override'] = null;
+        }
 
         $house->update($data);
         ReportCache::clear($house);
@@ -215,6 +221,17 @@ class PropertyHouseController extends Controller
         return response($binary, 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => $disposition . '; filename="' . $filename . '"',
+        ]);
+    }
+
+    public function reportWord(PropertyHouse $house, \App\Services\InspectionReportWordGenerator $generator): Response
+    {
+        $filename = 'inspection-' . $house->id . '.docx';
+        $binary = $generator->renderBinary($house);
+
+        return response($binary, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
 }

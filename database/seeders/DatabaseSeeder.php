@@ -13,11 +13,15 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        $adminEmail = config('auth.admin.email');
+        $adminName = config('auth.admin.name');
+        $adminPassword = config('auth.admin.password');
+
         User::query()->updateOrCreate(
-            ['email' => env('ADMIN_EMAIL', 'Gis_Admin@GISAdmin.com')],
+            ['email' => $adminEmail],
             [
-                'name' => env('ADMIN_NAME', 'GIS_ADMIN'),
-                'password' => Hash::make(env('ADMIN_PASSWORD', 'Gis@Admin!@#2026')),
+                'name' => $adminName,
+                'password' => Hash::make($adminPassword),
                 'is_admin' => true,
             ]
         );

@@ -120,17 +120,19 @@ class InspectionReportPdfGenerator
             // --- Percentages ---
             $pdf->AddPage();
 
+            $areaCount = count($house->inspectionAreas);
+            $isCompact = $areaCount > 10;
+
             // 1. Total Percentage (Donut)
-            $pdf->SetFont($this->fontBold, '', 16);
-            $pdf->Cell(0, 10, 'النسبة الإجمالية', 0, 1, 'C');
-            $pdf->Ln(1);
-            $this->renderTotalDonut($pdf, $house->total_percentage);
+            $pdf->SetFont($this->fontBold, '', $isCompact ? 14 : 16);
+            $pdf->Cell(0, $isCompact ? 7 : 10, 'النسبة الإجمالية', 0, 1, 'C');
+            $this->renderTotalDonut($pdf, $house->total_percentage, $isCompact);
 
             // 2. Sub-Percentages (Bars)
-            $pdf->Ln(5);
-            $pdf->SetFont($this->fontBold, '', 16);
-            $pdf->Cell(0, 10, 'النسب الفرعية', 0, 1, 'C');
-            $pdf->Ln(3);
+            $pdf->Ln($isCompact ? 2 : 4);
+            $pdf->SetFont($this->fontBold, '', $isCompact ? 14 : 16);
+            $pdf->Cell(0, $isCompact ? 7 : 10, 'النسب الفرعية', 0, 1, 'C');
+            $pdf->Ln($isCompact ? 1 : 2);
             $this->renderSubPercentageBars($pdf, $house->inspectionAreas);
 
             // --- Technical Notes ---
@@ -255,18 +257,17 @@ class InspectionReportPdfGenerator
 
     private function renderFixedPages(TCPDF $pdf): void
     {
-        $pdf->setCellHeightRatio(1.7);
-        $pdf->SetFont($this->font, '', 11);
+        $pdf->setCellHeightRatio(1.5);
 
         foreach ($this->getFixedPagesContent() as $html) {
             $pdf->AddPage();
-            $pdf->SetFont($this->font, '', 11);
+            $pdf->SetFont($this->font, '', 11.5);
             $pdf->writeHTMLCell(
                 0,
                 0,
                 '',
                 '',
-                '<div style="font-size:11.5px; line-height: 1.7; font-family: arialbd;">' . $html . '</div>',
+                '<div style="font-size:11.5px; line-height: 1.5; font-family: arialbd;">' . $html . '</div>',
                 0,
                 1,
                 false,
@@ -276,7 +277,7 @@ class InspectionReportPdfGenerator
             );
         }
 
-        $pdf->setCellHeightRatio(1.7);
+        $pdf->setCellHeightRatio(1.6);
     }
 
     private function getFixedPagesContent(): array
@@ -284,118 +285,118 @@ class InspectionReportPdfGenerator
         return [
             <<<'HTML'
 <div style="text-align:right; font-family: arialbd;">
-    <h1 style="font-family:arialbd; color:#c00000; font-size:14pt; text-align:center;">شركة GIS لفحص تقييم المباني</h1>
-    <h2 style="font-family:arialbd; color:#c00000; font-size:11pt; text-decoration:underline; text-align:center;">نبذة تعريفية – مقدمة الشركة وخدماتها</h2>
+    <h1 style="font-family:arialbd; color:#c00000; font-size:16pt; text-align:center; margin-bottom:4px;">شركة GIS لفحص تقييم المباني</h1>
+    <h2 style="font-family:arialbd; color:#c00000; font-size:13.5pt; text-decoration:underline; text-align:center; margin-bottom:10px;">نبذة تعريفية – مقدمة الشركة وخدماتها</h2>
 
-    <p style="font-size:10pt; font-family:arialbd; font-weight:bold; color:#000; margin-bottom:3px;">من نحن ؟</p>
-    <p style="font-size:9pt; color:#222; margin-top:0px; margin-bottom:6px;">نحن في شركة <strong>GIS</strong> نؤمن بأن سلامة العقار تبدأ من القرار الصحيح، ولهذا نقدم خدمة فحص شاملة للمباني الجاهزة قبل الشراء أو السكن، وذلك للتأكد من خلوها من العيوب الفنية الظاهرة أو المخاطر الخفية.</p>
-    <p style="font-size:9pt; color:#222; margin-top:0px; margin-bottom:6px;">نعمل من خلال خبراء مختصين، ونعتمد على أجهزة وتقنيات حديثة لضمان تقديم تقارير دقيقة وموثوقة تساعد العميل على اتخاذ قرار استثماري أو سكني آمن.</p>
-    <p style="font-size:9pt; color:#222; margin-top:0px; margin-bottom:6px;">نعد من أوائل الشركات المتخصصة في فحص العقارات في البحرين، ونفتخر بسجل حافل من الإنجازات وخدمة مئات العملاء من الأفراد والشركات والمطورين.</p>
+    <p style="font-size:13pt; font-family:arialbd; font-weight:bold; color:#000; margin-bottom:4px;">من نحن ؟</p>
+    <p style="font-size:11.5pt; color:#222; margin-top:0px; margin-bottom:8px; line-height:1.6;">نحن في شركة <strong>GIS</strong> نؤمن بأن سلامة العقار تبدأ من القرار الصحيح، ولهذا نقدم خدمة فحص شاملة للمباني الجاهزة قبل الشراء أو السكن، وذلك للتأكد من خلوها من العيوب الفنية الظاهرة أو المخاطر الخفية.</p>
+    <p style="font-size:11.5pt; color:#222; margin-top:0px; margin-bottom:8px; line-height:1.6;">نعمل من خلال خبراء مختصين، ونعتمد على أجهزة وتقنيات حديثة لضمان تقديم تقارير دقيقة وموثوقة تساعد العميل على اتخاذ قرار استثماري أو سكني آمن.</p>
+    <p style="font-size:11.5pt; color:#222; margin-top:0px; margin-bottom:10px; line-height:1.6;">نعد من أوائل الشركات المتخصصة في فحص العقارات في البحرين، ونفتخر بسجل حافل من الإنجازات وخدمة مئات العملاء من الأفراد والشركات والمطورين.</p>
 
-    <h2 style="font-family:arialbd; color:#c00000; font-size:11pt; text-decoration:underline; margin-bottom:3px; margin-top:5px;">خدماتنا الرئيسية</h2>
-    <p style="font-size:10pt; font-family:arialbd; font-weight:bold; color:#c00000; margin-top:0px; margin-bottom:3px;">تقدم شركة GIS خدمات فحص المباني الجاهزة عبر تقييم شامل للأنظمة التالية:</p>
-    <table cellpadding="5">
-        <tr><td style="font-size:9pt; line-height:17px"><strong>1- الكهرباء:</strong> فحص جودة وسلامة الأفياش، المفاتيح، الطبلون، الأحمال، التأريض.</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px"><strong>2- السباكة:</strong> فحص جودة المواسير، الصفايات، ضغط المياه، الخزانات، السخانات، ملوحة الماء.</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px"><strong>3- الرطوبة والتسريب:</strong> قياس الرطوبة، كشف التسريبات، فحص العزل المائي.</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px"><strong>4- الخزانات:</strong> التأكد من سلامتها من التسريب الحراري أو المائي لتفادي التلوث أو تلف الأسقف.</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px"><strong>5- الأبواب والنوافذ:</strong> التحقق من جودة الفتح والإغلاق، المفصلات، الإطارات، العزل، الديكورات.</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px"><strong>6- الأسقف والجدران:</strong> فحص الشقوق، آثار الرطوبة، جودة التشطيب، الزوايا، العزل الحراري.</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px"><strong>7- السيراميك والأرضيات:</strong> فحص الترويب، الاستواء، الثبات، جودة التركيب.</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px"><strong>8- أنظمة الحماية والسلامة:</strong> التأكد من جاهزية كاميرات المراقبة، كواشف الدخان، وحساسات الإنذار.</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px"><strong>9- التهوية والتكييف:</strong> فحص وحدات التكييف، فتحات الهواء، مراوح الشفط، جودة التأسيس.</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px"><strong>10- مواقف السيارات والواجهات:</strong> فحص الأرضية، المظلات، باب الكراج، التشققات، فواصل التمدد.</td></tr>
+    <h2 style="font-family:arialbd; color:#c00000; font-size:13.5pt; text-decoration:underline; margin-bottom:4px; margin-top:6px;">خدماتنا الرئيسية</h2>
+    <p style="font-size:12pt; font-family:arialbd; font-weight:bold; color:#c00000; margin-top:0px; margin-bottom:6px;">تقدم شركة GIS خدمات فحص المباني الجاهزة عبر تقييم شامل للأنظمة التالية:</p>
+    <table cellpadding="3.5">
+        <tr><td style="font-size:11.5pt; line-height:16px"><strong>1- الكهرباء:</strong> فحص جودة وسلامة الأفياش، المفاتيح، الطبلون، الأحمال، التأريض.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:16px"><strong>2- السباكة:</strong> فحص جودة المواسير، الصفايات، ضغط المياه، الخزانات، السخانات، ملوحة الماء.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:16px"><strong>3- الرطوبة والتسريب:</strong> قياس الرطوبة، كشف التسريبات، فحص العزل المائي.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:16px"><strong>4- الخزانات:</strong> التأكد من سلامتها من التسريب الحراري أو المائي لتفادي التلوث أو تلف الأسقف.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:16px"><strong>5- الأبواب والنوافذ:</strong> التحقق من جودة الفتح والإغلاق، المفصلات، الإطارات، العزل، الديكورات.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:16px"><strong>6- الأسقف والجدران:</strong> فحص الشقوق، آثار الرطوبة، جودة التشطيب، الزوايا، العزل الحراري.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:16px"><strong>7- السيراميك والأرضيات:</strong> فحص الترويب، الاستواء، الثبات، جودة التركيب.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:16px"><strong>8- أنظمة الحماية والسلامة:</strong> التأكد من جاهزية كاميرات المراقبة، كواشف الدخان، وحساسات الإنذار.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:16px"><strong>9- التهوية والتكييف:</strong> فحص وحدات التكييف، فتحات الهواء، مراوح الشفط، جودة التأسيس.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:16px"><strong>10- مواقف السيارات والواجهات:</strong> فحص الأرضية، المظلات، باب الكراج، التشققات، فواصل التمدد.</td></tr>
     </table>
 </div>
 HTML,
             <<<'HTML'
 <div style="text-align:right; font-family: arialbd;">
-    <h1 style="font-family:arialbd; color:#c00000; font-size:13pt; text-decoration:underline; margin-bottom:3px;">ما يميزنا</h1>
-    
-    <h2 style="font-family:arialbd; color:#c00000; font-size:11pt; text-decoration:underline; margin-top:3px; margin-bottom:3px;">ضمانات GIS:</h2>
-    <p style="font-size:9.5pt; margin-top:0px; margin-bottom:3px;">• <strong>ضمان الإحاطة:</strong> يشمل شمولية ودقة البيانات وفق معايير الشركة.</p>
-    <p style="font-size:9.5pt; color:#008000; font-weight:bold; margin-top:0px; margin-bottom:0px;"><span style="color:#008000; font-weight:bold; font-size:11pt;">*</span> شرح ضمان الإحاطة</p>
-    <p style="font-size:9pt; color:#222; margin-top:0px; margin-bottom:6px;">تقديم تقرير شامل قدر الإمكان عن حالة العقار الظاهرة، بناءً على المعايير الفنية المتبعة داخل الشركة. لا يُعد هذا ضمانًا قانونيًا أو فنيًا لحالة العقار المستقبلية أو للعيوب المخفية.</p>
+    <h1 style="font-family:arialbd; color:#c00000; font-size:15pt; text-decoration:underline; margin-bottom:8px;">ما يميزنا</h1>
 
-    <p style="font-size:9.5pt; margin-top:0px; margin-bottom:3px;">• <strong>ضمان السلامة:</strong> التأكد من خلو البنود المفحوصة من العيوب الخطرة، والرجوع لشهادات الضمان إن وجدت.</p>
-    <p style="font-size:9.5pt; color:#008000; font-weight:bold; margin-top:0px; margin-bottom:0px;"><span style="color:#008000; font-weight:bold; font-size:11pt;">*</span> شرح ضمان السلامة</p>
-    <p style="font-size:9pt; color:#222; margin-top:0px; margin-bottom:6px;">يُقصد به التأكد من عدم وجود عيوب خطرة في العناصر المفحوصة وقت الفحص، وفق المشاهدات الظاهرة. في حال توفر شهادات ضمان للعناصر مثل الكهرباء أو السباكة أو التكييف، يتم الرجوع إليها دون أن تتحمل الشركة مسؤولية صلاحيتها.</p>
+    <h2 style="font-family:arialbd; color:#c00000; font-size:13pt; text-decoration:underline; margin-top:6px; margin-bottom:4px;">ضمانات GIS:</h2>
+    <p style="font-size:11.5pt; margin-top:0px; margin-bottom:2px;">• <strong>ضمان الإحاطة:</strong> يشمل شمولية ودقة البيانات وفق معايير الشركة.</p>
+    <p style="font-size:11.5pt; color:#008000; font-weight:bold; margin-top:0px; margin-bottom:0px;"><span style="color:#008000; font-weight:bold; font-size:12.5pt;">*</span> شرح ضمان الإحاطة</p>
+    <p style="font-size:11pt; color:#222; margin-top:0px; margin-bottom:8px; line-height:1.55;">تقديم تقرير شامل قدر الإمكان عن حالة العقار الظاهرة، بناءً على المعايير الفنية المتبعة داخل الشركة. لا يُعد هذا ضمانًا قانونيًا أو فنيًا لحالة العقار المستقبلية أو للعيوب المخفية.</p>
 
-    <h2 style="font-family:arialbd; color:#c00000; font-size:11pt; text-decoration:underline; margin-top:5px; margin-bottom:3px;">امتيازاتنا:</h2>
-    <table cellpadding="5">
-        <tr><td style="font-size:9pt; line-height:17px">• سرعة في الاستجابة وإنجاز الفحص.</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px">• سهولة في تقديم الطلب واستلام التقرير.</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px">• توثيق مصور لجميع الملاحظات والعيوب.</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px">• تقارير احترافية سهلة القراءة وغنية بالتفاصيل.</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px">• أرشفة بيانات كل وحدة عقارية بشكل مستقل ومنظم.</td></tr>
+    <p style="font-size:11.5pt; margin-top:0px; margin-bottom:2px;">• <strong>ضمان السلامة:</strong> التأكد من خلو البنود المفحوصة من العيوب الخطرة، والرجوع لشهادات الضمان إن وجدت.</p>
+    <p style="font-size:11.5pt; color:#008000; font-weight:bold; margin-top:0px; margin-bottom:0px;"><span style="color:#008000; font-weight:bold; font-size:12.5pt;">*</span> شرح ضمان السلامة</p>
+    <p style="font-size:11pt; color:#222; margin-top:0px; margin-bottom:8px; line-height:1.55;">يُقصد به التأكد من عدم وجود عيوب خطرة في العناصر المفحوصة وقت الفحص، وفق المشاهدات الظاهرة. في حال توفر شهادات ضمان للعناصر مثل الكهرباء أو السباكة أو التكييف، يتم الرجوع إليها دون أن تتحمل الشركة مسؤولية صلاحيتها.</p>
+
+    <h2 style="font-family:arialbd; color:#c00000; font-size:13pt; text-decoration:underline; margin-top:8px; margin-bottom:4px;">امتيازاتنا:</h2>
+    <table cellpadding="3.5">
+        <tr><td style="font-size:11.5pt; line-height:17px">• سرعة في الاستجابة وإنجاز الفحص.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:17px">• سهولة في تقديم الطلب واستلام التقرير.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:17px">• توثيق مصور لجميع الملاحظات والعيوب.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:17px">• تقارير احترافية سهلة القراءة وغنية بالتفاصيل.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:17px">• أرشفة بيانات كل وحدة عقارية بشكل مستقل ومنظم.</td></tr>
     </table>
 
-    <h2 style="font-family:arialbd; color:#c00000; font-size:11pt; text-decoration:underline; margin-top:5px; margin-bottom:3px;">آلية الفحص والتسليم</h2>
-    <table cellpadding="5">
-        <tr><td style="font-size:9pt; line-height:16px">• تستغرق عملية الفحص من ساعتين إلى يومين حسب مساحة العقار وتعقيد أنظمته.</td></tr>
-        <tr><td style="font-size:9pt; line-height:16px">• يتم تسليم التقرير النهائي خلال 5 أيام عمل بعد مراجعته من قسم الجودة.</td></tr>
-        <tr><td style="font-size:9pt; line-height:16px">• في حال وجود ملاحظات من العميل، يجب إرسالها خلال مدة أقصاها 3 أيام من استلام التقرير لإجراء التعديلات المطلوبة، إن وجدت.</td></tr>
+    <h2 style="font-family:arialbd; color:#c00000; font-size:13pt; text-decoration:underline; margin-top:8px; margin-bottom:4px;">آلية الفحص والتسليم</h2>
+    <table cellpadding="3.5">
+        <tr><td style="font-size:11.5pt; line-height:17px">• تستغرق عملية الفحص من ساعتين إلى يومين حسب مساحة العقار وتعقيد أنظمته.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:17px">• يتم تسليم التقرير النهائي خلال 5 أيام عمل بعد مراجعته من قسم الجودة.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:17px">• في حال وجود ملاحظات من العميل، يجب إرسالها خلال مدة أقصاها 3 أيام من استلام التقرير لإجراء التعديلات المطلوبة، إن وجدت.</td></tr>
     </table>
 </div>
 HTML,
             <<<'HTML'
 <div style="text-align:right; font-family: arialbd;">
-    <h1 style="font-family:arialbd; color:#c00000; font-size:12.5pt; text-decoration:underline; margin-bottom:6px;">المستندات الاختيارية التي تُحسن جودة تقرير الفحص العقاري :-</h1>
-    <p style="font-size:9pt; color:#222; margin-top:0px; margin-bottom:6px;">تساهم المستندات التالية في رفع دقة وجودة التقييم الفني للعقار، ويُفضل إرفاق ما يتوفر منها مع طلب الفحص:</p>
+    <h1 style="font-family:arialbd; color:#c00000; font-size:16pt; text-decoration:underline; margin-bottom:10px;">المستندات الاختيارية التي تُحسن جودة تقرير الفحص العقاري :-</h1>
+    <p style="font-size:12.5pt; color:#222; margin-top:0px; margin-bottom:10px; line-height:1.6;">تساهم المستندات التالية في رفع دقة وجودة التقييم الفني للعقار، ويُفضل إرفاق ما يتوفر منها مع طلب الفحص:</p>
 
-    <p style="font-size:10pt; font-weight:bold; margin-bottom:3px; color:#c00000;">أولاً: مستندات هندسية وفنية</p>
+    <p style="font-size:13.5pt; font-weight:bold; margin-top:10px; margin-bottom:6px; color:#c00000;">أولاً: مستندات هندسية وفنية</p>
     <table cellpadding="5">
-        <tr><td style="font-size:9pt; line-height:17px">• رخصة البناء</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px">• المخططات الهندسية المعتمدة (معمارية، إنشائية، ميكانيكية، كهربائية)</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px">• شهادة ضمان الهيكل الإنشائي (عادة لمدة 10 سنوات)</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px">• تقارير فحص التربة</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px">• شهادات ضمان المواد والأنظمة مثل: (السباكة، الكهرباء، التكييف، العازل المائي، الألمنيوم والزجاج)</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• رخصة البناء</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• المخططات الهندسية المعتمدة (معمارية، إنشائية، ميكانيكية، كهربائية)</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• شهادة ضمان الهيكل الإنشائي (عادة لمدة 10 سنوات)</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• تقارير فحص التربة</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• شهادات ضمان المواد والأنظمة مثل: (السباكة، الكهرباء، التكييف، العازل المائي، الألمنيوم والزجاج)</td></tr>
     </table>
 
-    <p style="font-size:10pt; font-weight:bold; margin-top:5px; margin-bottom:3px; color:#c00000;">ثانياً: معلومات عامة وموقع العقار</p>
+    <p style="font-size:13.5pt; font-weight:bold; margin-top:10px; margin-bottom:6px; color:#c00000;">ثانياً: معلومات عامة وموقع العقار</p>
     <table cellpadding="5">
-        <tr><td style="font-size:9pt; line-height:17px">• صورة من خرائط العقار المعتمدة من المكتب الهندسي</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px">• موقع العقار (رابط مباشر أو صورة من خرائط Google أو تطبيق مشابه)</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px">• شهادة العنوان (تشمل رقم المنزل، اسم الشارع، رقم الطريق، ورقم المجمع)</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• صورة من خرائط العقار المعتمدة من المكتب الهندسي</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• موقع العقار (رابط مباشر أو صورة من خرائط Google أو تطبيق مشابه)</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• شهادة العنوان (تشمل رقم المنزل، اسم الشارع، رقم الطريق، ورقم المجمع)</td></tr>
     </table>
 
-    <p style="font-size:10pt; font-weight:bold; margin-top:5px; margin-bottom:3px; color:#c00000;">ثالثاً: مستندات إضافية داعمة لتقييم العقار</p>
+    <p style="font-size:13.5pt; font-weight:bold; margin-top:10px; margin-bottom:6px; color:#c00000;">ثالثاً: مستندات إضافية داعمة لتقييم العقار</p>
     <table cellpadding="5">
-        <tr><td style="font-size:9pt; line-height:17px">• شهادة ضغط الأرض (إن وُجدت)</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px">• عمر العقار التقريبي (سنة الإنشاء أو التسليم)</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px">• صورة البطاقة الذكية للمشتري أو طالب خدمة الفحص</td></tr>
-        <tr><td style="font-size:9pt; line-height:17px">• عقد المقاول العام و ضمانات المواد المستخدمة في البناء ( اختياري )</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• شهادة ضغط الأرض (إن وُجدت)</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• عمر العقار التقريبي (سنة الإنشاء أو التسليم)</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• صورة البطاقة الذكية للمشتري أو طالب خدمة الفحص</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• عقد المقاول العام و ضمانات المواد المستخدمة في البناء ( اختياري )</td></tr>
     </table>
 </div>
-HTML,  
+HTML,
             <<<'HTML'
 <div style="text-align:right; font-family: arialbd;">
-    <h1 style="font-family:arialbd; color:#c00000; font-size:13pt; text-decoration:underline; margin-bottom:6px;">تنويه هام – حدود المسؤولية</h1>
-    <p style="font-size:9.5pt; color:#222; margin-top:0px; margin-bottom:6px;">تلتزم شركة <strong>GIS</strong> بتقديم خدماتها بأقصى درجات الدقة والحيادية، باستخدام أدوات تقنية ومن خلال خبراء مختصين. مع ذلك، لا تتحمل الشركة أي مسؤولية قانونية أو مادية عن الأضرار الناتجة عن عملية الفحص, سواء أثناء المعاينة أو بعدها.</p>
-    <p style="font-size:9.5pt; color:#222; margin-top:0px; margin-bottom:6px;">كما لا تتحمل الشركة أي التزامات ناتجة عن نزاعات بين العميل وأطراف أخرى مثل المقاول أو المطور، إذ تقتصر مسؤوليتنا على التشخيص والتوثيق فقط.</p>
+    <h1 style="font-family:arialbd; color:#c00000; font-size:16pt; text-decoration:underline; margin-bottom:10px;">تنويه هام – حدود المسؤولية</h1>
+    <p style="font-size:12.5pt; color:#222; margin-top:0px; margin-bottom:10px; line-height:1.65;">تلتزم شركة <strong>GIS</strong> بتقديم خدماتها بأقصى درجات الدقة والحيادية، باستخدام أدوات تقنية ومن خلال خبراء مختصين. مع ذلك، لا تتحمل الشركة أي مسؤولية قانونية أو مادية عن الأضرار الناتجة عن عملية الفحص, سواء أثناء المعاينة أو بعدها.</p>
+    <p style="font-size:12.5pt; color:#222; margin-top:0px; margin-bottom:10px; line-height:1.65;">كما لا تتحمل الشركة أي التزامات ناتجة عن نزاعات بين العميل وأطراف أخرى مثل المقاول أو المطور، إذ تقتصر مسؤوليتنا على التشخيص والتوثيق فقط.</p>
 
-    <h2 style="font-family:arialbd; color:#c00000; font-size:11pt; margin-top:5px; margin-bottom:3px;"><span style="color:#c00000; font-weight:bold; font-size:11pt;">*</span> تنويه هام:</h2>
-    <p style="font-size:9pt; color:#222; margin-top:0px; margin-bottom:6px;">تقتصر مهمة شركة GIS على فحص وتوثيق الحالة الظاهرة للعقار وقت المعاينة فقط. ولا يُعد التقرير الصادر عنها التزامًا بضمان مستقبلي لحالة العقار أو لأي تطورات قد تطرأ لاحقًا. تنتهي مسؤولية الشركة بشكل كامل فور انتهاء الفحص ومغادرة الفريق للموقع، ما لم يتم الاتفاق المسبق على خدمة متابعة أو فحص إضافي.</p>
+    <h2 style="font-family:arialbd; color:#c00000; font-size:13.5pt; margin-top:8px; margin-bottom:4px;"><span style="color:#c00000; font-weight:bold; font-size:13.5pt;">*</span> تنويه هام:</h2>
+    <p style="font-size:12pt; color:#222; margin-top:0px; margin-bottom:10px; line-height:1.6;">تقتصر مهمة شركة GIS على فحص وتوثيق الحالة الظاهرة للعقار وقت المعاينة فقط. ولا يُعد التقرير الصادر عنها التزامًا بضمان مستقبلي لحالة العقار أو لأي تطورات قد تطرأ لاحقًا. تنتهي مسؤولية الشركة بشكل كامل فور انتهاء الفحص ومغادرة الفريق للموقع، ما لم يتم الاتفاق المسبق على خدمة متابعة أو فحص إضافي.</p>
 
-    <h2 style="font-family:arialbd; color:#c00000; font-size:11pt; text-decoration:underline; margin-top:5px; margin-bottom:3px;">الأسئلة الشائعة</h2>
-    <table cellpadding="5">
-        <tr><td style="font-size:9pt; line-height:16px;"><strong style="font-family:arialbd; color:red;">هل يمكن استرداد المبلغ؟</strong><br/><br/> نعم، مع تطبيق رسوم إدارية في حال تم الإلغاء قبل 24 ساعة من موعد الفحص.</td></tr><br/>
-        <tr><td style="font-size:9pt; line-height:16px;"><strong style="font-family:arialbd; color:red;">هل يمكن تعديل التقرير؟</strong><br/><br/> نعم، يتم قبول الملاحظات خلال 3 أيام فقط من استلام التقرير.</td></tr><br/>
-        <tr><td style="font-size:9pt; line-height:16px;"><strong style="font-family:arialbd; color:red;">هل تقدمون خدمات صيانة؟</strong><br/><br/> لا، نحن جهة فحص فقط لضمان الحيادية والاستقلالية.</td></tr><br/>
-        <tr><td style="font-size:9pt; line-height:16px;"><strong style="font-family:arialbd; color:red;">كيف يتم تعيين الفاحص؟</strong><br/><br/> نقوم بترشيح فاحص متخصص بناءً على نوع العقار وتوزيع العمل، ويرفع التقرير ضمن نموذج GIS المعتمد.</td></tr>
-        <tr><td style="font-size:9pt; line-height:16px;"><strong style="font-family:arialbd; color:red;">لماذا الفحص مهم؟</strong><br/> لأنه يوفر عليك آلاف الدنانير ويكشف عيوب قد تكون خفية قبل الشراء أو الاستلام.</td></tr>
+    <h2 style="font-family:arialbd; color:#c00000; font-size:14pt; text-decoration:underline; margin-top:10px; margin-bottom:6px;">الأسئلة الشائعة</h2>
+    <table cellpadding="4.5">
+        <tr><td style="font-size:12pt; line-height:18px;"><strong style="font-family:arialbd; color:red; font-size:13pt;">هل يمكن استرداد المبلغ؟</strong><br/> نعم، مع تطبيق رسوم إدارية في حال تم الإلغاء قبل 24 ساعة من موعد الفحص.</td></tr>
+        <tr><td style="font-size:12pt; line-height:18px;"><strong style="font-family:arialbd; color:red; font-size:13pt;">هل يمكن تعديل التقرير؟</strong><br/> نعم، يتم قبول الملاحظات خلال 3 أيام فقط من استلام التقرير.</td></tr>
+        <tr><td style="font-size:12pt; line-height:18px;"><strong style="font-family:arialbd; color:red; font-size:13pt;">هل تقدمون خدمات صيانة؟</strong><br/> لا، نحن جهة فحص فقط لضمان الحيادية والاستقلالية.</td></tr>
+        <tr><td style="font-size:12pt; line-height:18px;"><strong style="font-family:arialbd; color:red; font-size:13pt;">كيف يتم تعيين الفاحص؟</strong><br/> نقوم بترشيح فاحص متخصص بناءً على نوع العقار وتوزيع العمل، ويرفع التقرير ضمن نموذج GIS المعتمد.</td></tr>
+        <tr><td style="font-size:12pt; line-height:18px;"><strong style="font-family:arialbd; color:red; font-size:13pt;">لماذا الفحص مهم؟</strong><br/> لأنه يوفر عليك آلاف الدنانير ويكشف عيوب قد تكون خفية قبل الشراء أو الاستلام.</td></tr>
     </table>
 </div>
 HTML,
         ];
     }
 
-    private function renderTotalDonut(TCPDF $pdf, int $percentage): void
+    private function renderTotalDonut(TCPDF $pdf, int $percentage, bool $compact = false): void
     {
+        $radius = $compact ? 20 : 28;
+        $thickness = $compact ? 7 : 9;
+        $cY = $pdf->GetY() + $radius + 3;
         $cX = 105;
-        $cY = $pdf->GetY() + 35;
-        $radius = 32;
-        $thickness = 10;
 
         if ($percentage >= 80) {
             $r = 6;
@@ -422,38 +423,56 @@ HTML,
 
         $pdf->SetXY($cX - 15, $cY - 5);
         $pdf->SetTextColor($r, $g, $b);
-        $pdf->SetFont($this->fontBold, '', 24);
+        $pdf->SetFont($this->fontBold, '', $compact ? 18 : 22);
         $pdf->Cell(30, 10, $percentage . '%', 0, 0, 'C');
         $pdf->SetTextColor(0, 0, 0);
 
-        $pdf->SetY($cY + $radius + 10);
+        $pdf->SetY($cY + $radius + 4);
     }
 
     private function renderSubPercentageBars(TCPDF $pdf, $areas): void
     {
-        $pdf->setRTL(true);
-        $pageW = $pdf->getPageWidth();
-        $rightMargin = 14;
-        $h = 8.0;
-        $spacing = 3.0;
+        $pageW = $pdf->getPageWidth(); // 210mm
+        $count = count($areas);
+
+        // Dynamic height and spacing based on area count so EVERYTHING fits on 1 page!
+        if ($count > 12) {
+            $h = 5.6;
+            $spacing = 1.6;
+            $fontSize = 10;
+        } elseif ($count > 9) {
+            $h = 6.5;
+            $spacing = 2.0;
+            $fontSize = 10.5;
+        } else {
+            $h = 7.5;
+            $spacing = 2.5;
+            $fontSize = 11;
+        }
+
+        // Fixed X coordinates in LTR mode for perfect flush alignment:
+        // Right margin = 14mm -> Area Names box spans X = 142mm to X = 196mm (width 54mm)
+        // Horizontal Bars span X = 18mm to X = 140mm (width 122mm)
+        $nameX = 142;
+        $nameW = 54;
+        $barLeftX = 18;
+        $barRightX = 140;
+        $barW_full = $barRightX - $barLeftX; // 122mm
+
         $firstRowY = $pdf->GetY();
 
         foreach ($areas as $area) {
-            if ($pdf->GetY() > 240) {
-                $pdf->AddPage();
-            }
-
             $score = min(100, max(0, $area->score ?: 0));
             $currentY = $pdf->GetY();
 
             if ($score >= 80) {
                 $r = 0;
                 $g = 200;
-                $b = 83; // Green
+                $b = 83; // Green (#00C853)
             } elseif ($score >= 70) {
                 $r = 255;
-                $g = 255;
-                $b = 0; // Yellow
+                $g = 214;
+                $b = 0; // Yellow (#FFD600)
             } elseif ($score >= 60) {
                 $r = 215;
                 $g = 120;
@@ -464,45 +483,35 @@ HTML,
                 $b = 0; // Red
             }
 
-            $pdf->setRTL(false);
-
-            // Calculate text width to place bar exactly next to it
-            $pdf->SetFont($this->fontBold, '', 12);
-            $textW = $pdf->GetStringWidth($area->name) + 2; // +2 for tiny padding
-
-            // Name is right-aligned to the margin
-            $nameX = $pageW - $rightMargin - $textW;
-            $pdf->SetXY($nameX, $currentY);
+            // 1. Draw Area Name in fixed column on right (X = 142..196)
             $pdf->setRTL(true);
-            $pdf->Cell($textW, $h, $area->name, 0, 0, 'L');
+            $pdf->SetFont($this->fontBold, '', $fontSize);
+            $pdf->SetXY($pageW - ($nameX + $nameW), $currentY);
+            $pdf->Cell($nameW, $h, $area->name, 0, 0, 'R');
+
+            // 2. Draw Full Grey Background Bar (flush X = 18..140)
             $pdf->setRTL(false);
+            $pdf->SetFillColor(225, 225, 225);
+            $pdf->Rect($barLeftX, $currentY + 0.5, $barW_full, $h - 1, 'F');
 
-            // Bar goes from fixed left margin to the text
-            $barX = 30; // Fixed left margin for grey bars
-            $barW_full = $nameX - $barX - 2; // -2 for small gap between bar and text
-
-            // Draw grey background bar
-            $pdf->SetFillColor(245, 245, 245);
-            $pdf->Rect($barX, $currentY + 1, $barW_full, $h - 2, 'F');
-
-            // Draw colored percentage bar (aligned to the right side of the grey bar)
-            $filledW = ($score / 100) * $barW_full;
-            $filledX = $barX + $barW_full - $filledW;
+            // 3. Draw Filled Colored Percentage Bar (starts at barRightX = 140mm extending left)
+            $filledW = ($score / 100.0) * $barW_full;
+            $filledX = $barRightX - $filledW;
 
             $pdf->SetFillColor($r, $g, $b);
-            $pdf->Rect($filledX, $currentY + 1, $filledW, $h - 2, 'F');
+            $pdf->Rect($filledX, $currentY + 0.5, $filledW, $h - 1, 'F');
 
-            // Place percentage text flush at the LEFT edge of the colored bar
-            $pdf->SetFont('helvetica', 'B', 9);
-            $pdf->SetXY($filledX + 1, $currentY + 1);
+            // 4. Place percentage text at left edge of filled bar
+            $pdf->SetFont('helvetica', 'B', max(8, $fontSize - 1.5));
+            $pdf->SetXY($filledX + 1, $currentY + 0.5);
 
             if ($score >= 70 && $score <= 100) {
-                $pdf->SetTextColor(50, 50, 50);
+                $pdf->SetTextColor(40, 40, 40);
             } else {
                 $pdf->SetTextColor(255, 255, 255);
             }
 
-            $pdf->Cell($filledW - 1, $h - 2, $score . '%', 0, 0, 'L');
+            $pdf->Cell($filledW - 1, $h - 1, $score . '%', 0, 0, 'L');
 
             $pdf->setRTL(true);
             $pdf->SetTextColor(0, 0, 0);
@@ -510,12 +519,11 @@ HTML,
             $pdf->SetY($currentY + $h + $spacing);
         }
 
-        // Decorative separator line at left side (matching report style)
-        $lineX = 20;
+        // Decorative separator line on left side
         $pdf->setRTL(false);
-        $pdf->SetDrawColor(225, 225, 225);
+        $pdf->SetDrawColor(220, 220, 220);
         $pdf->SetLineWidth(0.4);
-        $pdf->Line($lineX, $firstRowY - 2, $lineX, $pdf->GetY() + 2);
+        $pdf->Line($barLeftX - 2, $firstRowY, $barLeftX - 2, $pdf->GetY());
         $pdf->SetLineWidth(0.2);
         $pdf->setRTL(true);
 
@@ -615,8 +623,8 @@ HTML,
             }
 
             $pdf->setCellHeightRatio(1.8);
-            foreach ($noteItems as $i => $noteText) {
-                $line = ($i + 1) . '- ' . $noteText;
+            foreach ($noteItems as $noteText) {
+                $line = '• ' . $noteText;
                 $pdf->MultiCell(0, 6, $line, 0, 'R', false, 1, '', '', true);
                 $pdf->Ln(2);
             }
@@ -780,36 +788,39 @@ HTML,
         $pdf->AddPage();
         $pdf->setRTL(true);
 
-        $pdf->SetFont($this->fontBold, '', 14);
+        $pdf->SetFont($this->fontBold, '', 15);
         $pdf->SetFillColor(255, 255, 0); // Yellow background
         $pdf->SetDrawColor(0, 0, 0);
         $pdf->SetLineWidth(0.3);
 
-        $titleW = 100;
+        $titleW = 120;
         $titleX = ($pdf->getPageWidth() - $titleW) / 2;
         $pdf->SetXY($titleX, $pdf->GetY());
-        $pdf->Cell($titleW, 10, 'النتيجة النهائية لتقرير الفحص', 1, 1, 'C', true);
-        $pdf->Ln(3);
+        $pdf->Cell($titleW, 11, 'النتيجة النهائية لتقرير الفحص', 1, 1, 'C', true);
+        $pdf->Ln(4);
 
         $totalPct = min(100, max(0, (int) ($house->total_percentage ?? 0)));
-        $rating = InspectionScoreLabels::label($totalPct);
+        $rating = $house->inspector_rating_override ?: InspectionScoreLabels::label($totalPct);
         $deliveryDate = ($house->report_delivered_at ?? $house->updated_at ?? now())->format('Y-m-d');
-
-        $pdf->SetFont($this->font, '', 10.5);
-        $pdf->setCellHeightRatio(1.3);
 
         $manualText = trim((string) ($house->final_result_text ?? ''));
         if ($manualText !== '') {
-            $formattedText = nl2br(e($manualText));
-            // Standardize double spacing between paragraphs and lines to fill space and look readable
-            $formattedText = str_replace("<br />\n<br />", "<br/><br/>", $formattedText);
-            $formattedText = str_replace("<br />", "<br/><br/>", $formattedText);
+            $lines = preg_split("/\r\n|\n|\r/", $manualText);
+            $cleanParagraphs = [];
+            foreach ($lines as $line) {
+                $trimmed = trim($line);
+                if ($trimmed !== '') {
+                    $cleanParagraphs[] = e($trimmed);
+                }
+            }
+            $formattedHtml = implode('<br/>', $cleanParagraphs);
+
             $pdf->writeHTMLCell(
                 0,
                 0,
                 '',
                 '',
-                '<div dir="rtl" style="font-size:10.5pt; text-align:justify; line-height:1.35;">' . $formattedText . '</div>',
+                '<div dir="rtl" style="font-size:12pt; text-align:justify; line-height:1.55; font-family: arialbd;">' . $formattedHtml . '</div>',
                 0,
                 1,
                 false,

@@ -21,6 +21,28 @@
                 placeholder="ملاحظات عامة تظهر قبل تقييم الفاحص...">{{ old('final_general_notes', $house->final_general_notes) }}</textarea>
         </div>
 
+        {{-- تجاوز تقييم الفاحص --}}
+        <div class="max-w-xs">
+            <label for="inspector_rating_override" class="block text-sm font-medium text-slate-300 mb-1">تقييم الفاحص للعقار</label>
+            <p class="text-xs text-slate-500 mb-2">
+                التقييم التلقائي الحالي:
+                <span class="font-bold text-amber-400">{{ \App\Support\InspectionScoreLabels::label((int) $house->total_percentage) }}</span>
+                — اتركه على «تلقائي» إذا كان مناسباً، أو اختر تقييماً يدوياً.
+            </p>
+            <select id="inspector_rating_override" name="inspector_rating_override"
+                class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-amber-500 focus:outline-none">
+                <option value="" {{ old('inspector_rating_override', $house->inspector_rating_override) === null || old('inspector_rating_override', $house->inspector_rating_override) === '' ? 'selected' : '' }}>
+                    ← تلقائي ({{ \App\Support\InspectionScoreLabels::label((int) $house->total_percentage) }})
+                </option>
+                @foreach(['ممتاز', 'جيد جداً', 'جيد', 'متوسط', 'ضعيف'] as $ratingOption)
+                    <option value="{{ $ratingOption }}"
+                        {{ old('inspector_rating_override', $house->inspector_rating_override) === $ratingOption ? 'selected' : '' }}>
+                        {{ $ratingOption }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
         <div class="max-w-xs">
             <label for="report_delivered_at" class="block text-sm font-medium text-slate-300 mb-2">تاريخ تسليم التقرير</label>
             <input id="report_delivered_at" name="report_delivered_at" type="date"
