@@ -183,26 +183,36 @@ class ReadyNotesSeeder extends Seeder
         ];
 
         foreach ($categories as $index => $catData) {
-            $category = NoteCategory::create([
-                'name' => $catData['name'],
-                'name_en' => $catData['name_en'],
-                'sort_order' => $index + 1,
-            ]);
+            $category = NoteCategory::firstOrCreate(
+                ['name' => $catData['name']],
+                [
+                    'name_en' => $catData['name_en'],
+                    'sort_order' => $index + 1,
+                ]
+            );
 
             foreach ($catData['notes'] as $noteIndex => $noteText) {
-                ReadyNote::create([
-                    'note_category_id' => $category->id,
-                    'text' => $noteText,
-                    'sort_order' => $noteIndex + 1,
-                ]);
+                ReadyNote::firstOrCreate(
+                    [
+                        'note_category_id' => $category->id,
+                        'text' => $noteText,
+                    ],
+                    [
+                        'sort_order' => $noteIndex + 1,
+                    ]
+                );
             }
 
             foreach (($catData['recommendations'] ?? []) as $recIndex => $recText) {
-                RecommendationTemplate::create([
-                    'note_category_id' => $category->id,
-                    'text' => $recText,
-                    'sort_order' => $recIndex + 1,
-                ]);
+                RecommendationTemplate::firstOrCreate(
+                    [
+                        'note_category_id' => $category->id,
+                        'text' => $recText,
+                    ],
+                    [
+                        'sort_order' => $recIndex + 1,
+                    ]
+                );
             }
         }
     }

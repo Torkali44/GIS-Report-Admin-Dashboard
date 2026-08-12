@@ -119,14 +119,15 @@ return [
     | Default Admin Credentials
     |--------------------------------------------------------------------------
     |
-    | Initial admin user details seeded into the database. Configured via .env
-    | so credentials are not exposed in public repositories.
+    | Initial admin user details are supplied only through the environment.
+    | Deliberately do not provide fallback credentials: seeding must fail
+    | safely if the deployment has not been configured.
     |
     */
     'admin' => [
-        'name' => env('ADMIN_NAME', 'GIS_ADMIN'),
-        'email' => env('ADMIN_EMAIL', 'admin@example.com'),
-        'password' => env('ADMIN_PASSWORD', 'change_this_secure_password'),
+        'name' => env('ADMIN_NAME'),
+        'email' => env('ADMIN_EMAIL'),
+        'password' => env('ADMIN_PASSWORD'),
     ],
 
 ];

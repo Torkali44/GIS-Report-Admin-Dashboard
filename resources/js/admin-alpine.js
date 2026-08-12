@@ -2,208 +2,277 @@
  * Admin Alpine components — must load before Alpine.start()
  */
 
-function loadCategoriesFromDom() {
-    const catEl = document.getElementById('categories-json-data');
-    if (!catEl) {
-        return [];
-    }
+// ── helpers ──────────────────────────────────────────────────────────────────
+
+function _loadCatsFromDom() {
+    const el = document.getElementById('categories-json-data');
+    if (!el) return [];
     try {
-        return JSON.parse(catEl.textContent.trim());
+        const arr = JSON.parse(el.textContent.trim());
+        // deduplicate by name, keep first occurrence (lowest ID)
+        const seen = new Set();
+        return arr.filter(c => {
+            if (!c || !c.name || seen.has(c.name)) return false;
+            seen.add(c.name);
+            return true;
+        });
     } catch (e) {
-        console.error('categories-json', e);
+        console.error('[admin-alpine] categories-json parse error:', e);
         return [];
     }
 }
 
-function categoryPickerMixin(getSectionName) {
-    return {
-        selectedCategory: '',
-        allCategories: [],
-        categoryNotes: [],
-        categoryRecs: [],
-        selectedNotes: [],
-        selectedRecsArr: [],
-
-        loadCategoriesJson() {
-            this.allCategories = loadCategoriesFromDom();
-        },
-
-        loadCategoryData(clearSelections = true) {
-            this.categoryNotes = [];
-            this.categoryRecs = [];
-            if (clearSelections) {
-                this.selectedNotes = [];
-                this.selectedRecsArr = [];
-            }
-            if (!this.selectedCategory) {
-                return;
-            }
-
-            const cat = this.allCategories.find((c) => String(c.id) === String(this.selectedCategory));
-            if (cat) {
-                this.categoryNotes = cat.ready_notes || [];
-                this.categoryRecs = cat.recommendation_templates || [];
-            }
-        },
-
-        syncCheckboxesFromLists() {
-            if (!this.selectedCategory) {
-                return;
-            }
-            this.loadCategoryData(false);
-
-            for (const note of this.categoryNotes) {
-                const text = this.noteTextFromTemplate(note);
-                if (this.notesList.includes(text) && !this.isNoteSelected(note)) {
-                    this.selectedNotes.push(note);
-                }
-            }
-            for (const rec of this.categoryRecs) {
-                if (this.recommendationsList.includes(rec.text) && !this.isRecSelected(rec)) {
-                    this.selectedRecsArr.push(rec);
-                }
-            }
-        },
-
-        isNoteSelected(note) {
-            return this.selectedNotes.some((n) => n.id === note.id);
-        },
-
-        isRecSelected(rec) {
-            return this.selectedRecsArr.some((r) => r.id === rec.id);
-        },
-
-        toggleNote(note) {
-            const idx = this.selectedNotes.findIndex((n) => n.id === note.id);
-            if (idx >= 0) {
-                this.selectedNotes.splice(idx, 1);
-                this.removeNoteText(note);
-            } else {
-                this.selectedNotes.push(note);
-                this.addNoteText(note);
-            }
-        },
-
-        toggleRec(rec) {
-            const idx = this.selectedRecsArr.findIndex((r) => r.id === rec.id);
-            if (idx >= 0) {
-                this.selectedRecsArr.splice(idx, 1);
-                this.removeRecText(rec);
-            } else {
-                this.selectedRecsArr.push(rec);
-                this.addRecText(rec);
-            }
-        },
-
-        noteTextFromTemplate(note) {
-            const section = getSectionName.call(this) || '(الموقع)';
-            return String(note.text).replace(/\(الموقع\)/g, section);
-        },
-
-        addNoteText(note) {
-            const text = this.noteTextFromTemplate(note);
-            if (!this.notesList.includes(text)) {
-                this.notesList.push(text);
-                this.syncTextFromLists();
-            }
-        },
-
-        removeNoteText(note) {
-            const text = this.noteTextFromTemplate(note);
-            const idx = this.notesList.indexOf(text);
-            if (idx >= 0) {
-                this.notesList.splice(idx, 1);
-                this.syncTextFromLists();
-            }
-        },
-
-        addRecText(rec) {
-            if (!this.recommendationsList.includes(rec.text)) {
-                this.recommendationsList.push(rec.text);
-                this.syncTextFromLists();
-            }
-        },
-
-        removeRecText(rec) {
-            const idx = this.recommendationsList.indexOf(rec.text);
-            if (idx >= 0) {
-                this.recommendationsList.splice(idx, 1);
-                this.syncTextFromLists();
-            }
-        },
-
-        syncTextFromLists() {
-            this.notesText = this.notesList.join('\n');
-            this.recommendationsText = this.recommendationsList.join('\n');
-        },
-
-        syncListsFromText() {
-            this.notesList = (this.notesText || '').split('\n').map(s => s.trim()).filter(s => s !== '');
-            this.recommendationsList = (this.recommendationsText || '').split('\n').map(s => s.trim()).filter(s => s !== '');
-        },
-    };
+function _loadSectionsFromDom() {
+    const el = document.getElementById('ready-sections-json-data');
+    if (!el) return [];
+    try {
+        return JSON.parse(el.textContent.trim()) || [];
+    } catch (e) {
+        console.error('[admin-alpine] ready-sections-json parse error:', e);
+        return [];
+    }
 }
+
+/**
+ * Find a NoteCategory by numeric ID string OR exact name.
+ */
+function _catById(cats, id) {
+    if (!id && id !== 0) return null;
+    return cats.find(c => String(c.id) === String(id)) || null;
+}
+
+// ── areaForm ─────────────────────────────────────────────────────────────────
 
 export function registerAdminAlpine(Alpine) {
-    Alpine.data('areaCardEditor', (initialNotes = [], initialRecs = [], initialAreaName = '') => ({
-        editing: false,
-        areaNameField: initialAreaName || '',
-        notesList: Array.isArray(initialNotes) ? [...initialNotes] : [],
-        recommendationsList: Array.isArray(initialRecs) ? [...initialRecs] : [],
-        notesText: Array.isArray(initialNotes) ? initialNotes.join('\n') : '',
-        recommendationsText: Array.isArray(initialRecs) ? initialRecs.join('\n') : '',
-
-        ...categoryPickerMixin(function sectionName() {
-            return this.areaNameField || '';
-        }),
-
-        init() {
-            this.loadCategoriesJson();
-        },
-
-        startEditing() {
-            this.editing = true;
-            this.syncTextFromLists();
-            this.$nextTick(() => this.syncCheckboxesFromLists());
-        },
-    }));
 
     Alpine.data('areaForm', () => ({
-        selectedSection: '',
-        customSection: '',
-        readySections: [],
+        // section picker
+        selectedSection: '',   // value from <select> (a section name or '__custom__')
+        customSection: '',     // free-text input when selectedSection === '__custom__'
+
+        // note lists
         notesList: [],
         recommendationsList: [],
         notesText: '',
         recommendationsText: '',
 
-        ...categoryPickerMixin(function sectionName() {
-            return this.selectedSection === '__custom__' ? this.customSection : this.selectedSection;
-        }),
+        // category picker state
+        allCategories: [],
+        readySections: [],
+        selectedCategory: '',    // numeric ID as string
+        categoryNotes: [],
+        categoryRecs: [],
+        selectedNotes: [],
+        selectedRecsArr: [],
+
+        // ── lifecycle ─────────────────────────────────────────────────────────
+        init() {
+            this.allCategories = _loadCatsFromDom();
+            this.readySections = _loadSectionsFromDom();
+        },
+
+        // ── section name ──────────────────────────────────────────────────────
+        get resolvedSectionName() {
+            if (this.selectedSection === '__custom__') return this.customSection || '';
+            return this.selectedSection || '';
+        },
+
+        // ── events ────────────────────────────────────────────────────────────
+        onSectionChange() {
+            // When user picks a preset section, copy its name to customSection too
+            if (this.selectedSection && this.selectedSection !== '__custom__') {
+                this.customSection = this.selectedSection;
+            }
+            this._applySection(this.resolvedSectionName);
+        },
+
+        onCustomSectionInput() {
+            if (!this.selectedSection) this.selectedSection = '__custom__';
+            this._applySection(this.customSection.trim());
+        },
+
+        onCategoryChange() {
+            this._loadNotesForCategory(this.selectedCategory);
+        },
+
+        // ── internals ─────────────────────────────────────────────────────────
+        _applySection(name) {
+            if (!name) return;
+            // find a ready section matching this name
+            const sec = this.readySections.find(s => s.name === name);
+            if (sec && sec.note_category_id) {
+                this.selectedCategory = String(sec.note_category_id);
+                this._loadNotesForCategory(this.selectedCategory);
+                return;
+            }
+            // no ready section — keep current category (user can pick manually)
+        },
+
+        _loadNotesForCategory(catId) {
+            this.categoryNotes = [];
+            this.categoryRecs = [];
+            this.selectedNotes = [];
+            this.selectedRecsArr = [];
+            if (!catId) return;
+            const cat = _catById(this.allCategories, catId);
+            if (!cat) return;
+            this.categoryNotes = cat.ready_notes || [];
+            this.categoryRecs  = cat.recommendation_templates || [];
+        },
+
+        // ── note checkbox helpers ─────────────────────────────────────────────
+        _noteText(note) {
+            const loc = this.resolvedSectionName || '(الموقع)';
+            return String(note.text).replace(/\(الموقع\)/g, loc);
+        },
+
+        isNoteSelected(note) { return this.selectedNotes.some(n => n.id === note.id); },
+        isRecSelected(rec)   { return this.selectedRecsArr.some(r => r.id === rec.id); },
+
+        toggleNote(note) {
+            const i = this.selectedNotes.findIndex(n => n.id === note.id);
+            if (i >= 0) {
+                this.selectedNotes.splice(i, 1);
+                const t = this._noteText(note);
+                const j = this.notesList.indexOf(t);
+                if (j >= 0) this.notesList.splice(j, 1);
+            } else {
+                this.selectedNotes.push(note);
+                const t = this._noteText(note);
+                if (!this.notesList.includes(t)) this.notesList.push(t);
+            }
+            this._syncText();
+        },
+
+        toggleRec(rec) {
+            const i = this.selectedRecsArr.findIndex(r => r.id === rec.id);
+            if (i >= 0) {
+                this.selectedRecsArr.splice(i, 1);
+                const j = this.recommendationsList.indexOf(rec.text);
+                if (j >= 0) this.recommendationsList.splice(j, 1);
+            } else {
+                this.selectedRecsArr.push(rec);
+                if (!this.recommendationsList.includes(rec.text)) this.recommendationsList.push(rec.text);
+            }
+            this._syncText();
+        },
+
+        _syncText() {
+            this.notesText          = this.notesList.join('\n');
+            this.recommendationsText = this.recommendationsList.join('\n');
+        },
+
+        syncListsFromText() {
+            this.notesList          = (this.notesText || '').split('\n').map(s => s.trim()).filter(Boolean);
+            this.recommendationsList = (this.recommendationsText || '').split('\n').map(s => s.trim()).filter(Boolean);
+        },
+    }));
+
+    // ── areaCardEditor ────────────────────────────────────────────────────────
+
+    Alpine.data('areaCardEditor', (initialNotes = [], initialRecs = [], initialAreaName = '') => ({
+        editing: false,
+        areaNameField: initialAreaName || '',
+        notesList:            Array.isArray(initialNotes) ? [...initialNotes] : [],
+        recommendationsList:  Array.isArray(initialRecs)  ? [...initialRecs]  : [],
+        notesText:            Array.isArray(initialNotes) ? initialNotes.join('\n') : '',
+        recommendationsText:  Array.isArray(initialRecs)  ? initialRecs.join('\n')  : '',
+
+        // category picker state
+        allCategories: [],
+        selectedCategory: '',
+        categoryNotes: [],
+        categoryRecs: [],
+        selectedNotes: [],
+        selectedRecsArr: [],
 
         init() {
-            this.loadCategoriesJson();
-            const secEl = document.getElementById('ready-sections-json-data');
-            if (secEl) {
-                try {
-                    this.readySections = JSON.parse(secEl.textContent.trim());
-                } catch (e) {
-                    console.error('ready-sections-json', e);
-                }
+            this.allCategories = _loadCatsFromDom();
+        },
+
+        startEditing() {
+            this.editing = true;
+            this.notesText          = this.notesList.join('\n');
+            this.recommendationsText = this.recommendationsList.join('\n');
+            // pre-select category based on area name
+            this.$nextTick(() => this._syncCheckboxes());
+        },
+
+        onCategoryChange() {
+            this.categoryNotes = [];
+            this.categoryRecs  = [];
+            this.selectedNotes = [];
+            this.selectedRecsArr = [];
+            if (!this.selectedCategory) return;
+            const cat = _catById(this.allCategories, this.selectedCategory);
+            if (cat) {
+                this.categoryNotes = cat.ready_notes || [];
+                this.categoryRecs  = cat.recommendation_templates || [];
             }
         },
 
-        onSectionChange() {
-            const section = this.readySections.find((s) => s.name === this.sectionName());
-            if (section?.note_category_id) {
-                this.selectedCategory = String(section.note_category_id);
-                this.loadCategoryData();
+        _syncCheckboxes() {
+            if (!this.selectedCategory) return;
+            const cat = _catById(this.allCategories, this.selectedCategory);
+            if (!cat) return;
+            this.categoryNotes = cat.ready_notes || [];
+            this.categoryRecs  = cat.recommendation_templates || [];
+
+            this.selectedNotes = [];
+            this.selectedRecsArr = [];
+            const loc = this.areaNameField || '(الموقع)';
+            for (const note of this.categoryNotes) {
+                const text = String(note.text).replace(/\(الموقع\)/g, loc);
+                if (this.notesList.includes(text)) this.selectedNotes.push(note);
+            }
+            for (const rec of this.categoryRecs) {
+                if (this.recommendationsList.includes(rec.text)) this.selectedRecsArr.push(rec);
             }
         },
 
-        sectionName() {
-            return this.selectedSection === '__custom__' ? this.customSection : this.selectedSection;
+        _noteText(note) {
+            const loc = this.areaNameField || '(الموقع)';
+            return String(note.text).replace(/\(الموقع\)/g, loc);
+        },
+
+        isNoteSelected(note) { return this.selectedNotes.some(n => n.id === note.id); },
+        isRecSelected(rec)   { return this.selectedRecsArr.some(r => r.id === rec.id); },
+
+        toggleNote(note) {
+            const i = this.selectedNotes.findIndex(n => n.id === note.id);
+            if (i >= 0) {
+                this.selectedNotes.splice(i, 1);
+                const j = this.notesList.indexOf(this._noteText(note));
+                if (j >= 0) this.notesList.splice(j, 1);
+            } else {
+                this.selectedNotes.push(note);
+                const t = this._noteText(note);
+                if (!this.notesList.includes(t)) this.notesList.push(t);
+            }
+            this._syncText();
+        },
+
+        toggleRec(rec) {
+            const i = this.selectedRecsArr.findIndex(r => r.id === rec.id);
+            if (i >= 0) {
+                this.selectedRecsArr.splice(i, 1);
+                const j = this.recommendationsList.indexOf(rec.text);
+                if (j >= 0) this.recommendationsList.splice(j, 1);
+            } else {
+                this.selectedRecsArr.push(rec);
+                if (!this.recommendationsList.includes(rec.text)) this.recommendationsList.push(rec.text);
+            }
+            this._syncText();
+        },
+
+        _syncText() {
+            this.notesText          = this.notesList.join('\n');
+            this.recommendationsText = this.recommendationsList.join('\n');
+        },
+
+        syncListsFromText() {
+            this.notesList          = (this.notesText || '').split('\n').map(s => s.trim()).filter(Boolean);
+            this.recommendationsList = (this.recommendationsText || '').split('\n').map(s => s.trim()).filter(Boolean);
         },
     }));
 }
-

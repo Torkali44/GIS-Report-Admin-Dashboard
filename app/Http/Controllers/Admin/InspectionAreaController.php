@@ -11,10 +11,12 @@ use App\Support\ReportCache;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class InspectionAreaController extends Controller
 {
     use RedirectsToHouseArea;
+
     public function store(Request $request, PropertyHouse $house): RedirectResponse
     {
         if ($request->input('name') === '__custom__') {
@@ -27,9 +29,11 @@ class InspectionAreaController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'score' => ['nullable', 'integer', 'min:0', 'max:100'],
             'notes_text' => ['nullable', 'string', 'max:20000'],
-            'notes_list' => ['nullable'],
+            'notes_list' => ['nullable', 'array', 'max:50'],
+            'notes_list.*' => ['nullable', 'string', 'max:2000'],
             'recommendations_text' => ['nullable', 'string', 'max:20000'],
-            'recommendations_list' => ['nullable'],
+            'recommendations_list' => ['nullable', 'array', 'max:50'],
+            'recommendations_list.*' => ['nullable', 'string', 'max:2000'],
         ], [
             'name.required' => 'يرجى اختيار أو كتابة "اسم القسم" قبل الحفظ.',
             'score.integer' => 'حقل "النسبة" يجب أن يكون رقماً صحيحاً.',
@@ -41,19 +45,24 @@ class InspectionAreaController extends Controller
         $notes = InspectionTextLists::normalize($rawNotes);
         $recs = InspectionTextLists::normalize($rawRecs);
 
-        $max = (int) $house->inspectionAreas()->max('sort_order');
-        $area = $house->inspectionAreas()->create([
-            'name' => $data['name'],
-            'score' => $data['score'] ?? 0,
-            'notes_json' => $notes,
-            'recommendations_json' => $recs,
-            'additional_info' => InspectionTextLists::formatForStorage($notes),
-            'recommendations' => InspectionTextLists::formatForStorage($recs),
-            'sort_order' => $max + 1,
-        ]);
+        $area = DB::transaction(function () use ($house, $data, $notes, $recs): InspectionArea {
+            $lockedHouse = $this->lockHouse($house);
+            $max = (int) $lockedHouse->inspectionAreas()->max('sort_order');
+            $area = $lockedHouse->inspectionAreas()->create([
+                'name' => $data['name'],
+                'score' => $data['score'] ?? 0,
+                'notes_json' => $notes,
+                'recommendations_json' => $recs,
+                'additional_info' => InspectionTextLists::formatForStorage($notes),
+                'recommendations' => InspectionTextLists::formatForStorage($recs),
+                'sort_order' => $max + 1,
+            ]);
 
-        $this->normalizeSortOrder($house);
-        $house->touch();
+            $this->normalizeSortOrder($lockedHouse);
+            $lockedHouse->touch();
+
+            return $area;
+        });
         ReportCache::clear($house);
 
         if ($this->wantsAreaJson($request)) {
@@ -71,9 +80,11 @@ class InspectionAreaController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'score' => ['nullable', 'integer', 'min:0', 'max:100'],
             'notes_text' => ['nullable', 'string', 'max:20000'],
-            'notes_list' => ['nullable'],
+            'notes_list' => ['nullable', 'array', 'max:50'],
+            'notes_list.*' => ['nullable', 'string', 'max:2000'],
             'recommendations_text' => ['nullable', 'string', 'max:20000'],
-            'recommendations_list' => ['nullable'],
+            'recommendations_list' => ['nullable', 'array', 'max:50'],
+            'recommendations_list.*' => ['nullable', 'string', 'max:2000'],
         ], [
             'name.required' => 'يرجى اختيار أو كتابة "اسم القسم" قبل الحفظ.',
             'score.integer' => 'حقل "النسبة" يجب أن يكون رقماً صحيحاً.',
@@ -85,16 +96,24 @@ class InspectionAreaController extends Controller
         $notes = InspectionTextLists::normalize($rawNotes);
         $recs = InspectionTextLists::normalize($rawRecs);
 
-        $area->update([
-            'name' => $data['name'],
-            'score' => $data['score'] ?? 0,
-            'notes_json' => $notes,
-            'recommendations_json' => $recs,
-            'additional_info' => InspectionTextLists::formatForStorage($notes),
-            'recommendations' => InspectionTextLists::formatForStorage($recs),
-        ]);
+        $area = DB::transaction(function () use ($house, $area, $data, $notes, $recs): InspectionArea {
+            $lockedHouse = $this->lockHouse($house);
+            $lockedArea = InspectionArea::query()->lockForUpdate()->findOrFail($area->id);
+            $this->assertAreaBelongs($lockedHouse, $lockedArea);
 
-        $house->touch();
+            $lockedArea->update([
+                'name' => $data['name'],
+                'score' => $data['score'] ?? 0,
+                'notes_json' => $notes,
+                'recommendations_json' => $recs,
+                'additional_info' => InspectionTextLists::formatForStorage($notes),
+                'recommendations' => InspectionTextLists::formatForStorage($recs),
+            ]);
+            $lockedHouse->touch();
+
+            return $lockedArea;
+        });
+
         ReportCache::clear($house);
 
         if ($this->wantsAreaJson($request)) {
@@ -109,10 +128,14 @@ class InspectionAreaController extends Controller
         $this->assertAreaBelongs($house, $area);
 
         $areaId = $area->id;
-        $area->delete();
-
-        $this->normalizeSortOrder($house);
-        $house->touch();
+        DB::transaction(function () use ($area, $house): void {
+            $lockedHouse = $this->lockHouse($house);
+            $lockedArea = InspectionArea::query()->lockForUpdate()->findOrFail($area->id);
+            $this->assertAreaBelongs($lockedHouse, $lockedArea);
+            $lockedArea->delete();
+            $this->normalizeSortOrder($lockedHouse);
+            $lockedHouse->touch();
+        });
         ReportCache::clear($house);
 
         if ($this->wantsAreaJson($request)) {
@@ -134,25 +157,32 @@ class InspectionAreaController extends Controller
         ]);
 
         $newOrder = (int) $data['sort_order'];
-        
-        // Get all areas in current order
-        $areas = $house->inspectionAreas()->orderBy('sort_order')->get();
-        
-        // Filter out the area we are moving
-        $others = $areas->reject(fn($item) => $item->id === $area->id)->values();
-        
-        // Determine the target index (0-based)
-        $targetIndex = max(0, min($newOrder - 1, $others->count()));
-        
-        // Splice the area back in at the target position
-        $others->splice($targetIndex, 0, [$area]);
-        
-        // Update all areas with their new sequential sort_order
-        foreach ($others as $index => $item) {
-            $item->update(['sort_order' => $index + 1]);
-        }
 
-        $house->touch();
+        $area = DB::transaction(function () use ($house, $area, $newOrder): InspectionArea {
+            $lockedHouse = $this->lockHouse($house);
+            // Get all areas in current order
+            $areas = $lockedHouse->inspectionAreas()->lockForUpdate()->orderBy('sort_order')->orderBy('id')->get();
+            $lockedArea = $areas->firstWhere('id', $area->id);
+            abort_if($lockedArea === null, 404);
+
+            // Filter out the area we are moving
+            $others = $areas->reject(fn ($item) => $item->id === $lockedArea->id)->values();
+
+            // Determine the target index (0-based)
+            $targetIndex = max(0, min($newOrder - 1, $others->count()));
+
+            // Splice the area back in at the target position
+            $others->splice($targetIndex, 0, [$lockedArea]);
+
+            // Update all areas with their new sequential sort_order
+            foreach ($others as $index => $item) {
+                $item->update(['sort_order' => $index + 1]);
+            }
+            $lockedHouse->touch();
+
+            return $lockedArea;
+        });
+
         ReportCache::clear($house);
 
         if ($this->wantsAreaJson($request)) {
@@ -164,10 +194,10 @@ class InspectionAreaController extends Controller
 
     private function normalizeSortOrder(PropertyHouse $house): void
     {
-        // Order by sort_order first, then by updated_at desc to favor the recently changed item
+        // Keep a stable deterministic order when two rows temporarily share the same position.
         $areas = $house->inspectionAreas()
             ->orderBy('sort_order')
-            ->orderBy('updated_at', 'desc')
+            ->orderBy('id')
             ->get();
 
         foreach ($areas as $i => $area) {
@@ -183,5 +213,12 @@ class InspectionAreaController extends Controller
         if ((int) $area->property_house_id !== (int) $house->id) {
             abort(404);
         }
+    }
+
+    private function lockHouse(PropertyHouse $house): PropertyHouse
+    {
+        return PropertyHouse::query()
+            ->lockForUpdate()
+            ->findOrFail($house->id);
     }
 }

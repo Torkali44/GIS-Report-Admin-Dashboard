@@ -1,9 +1,9 @@
 {{-- Requires Alpine: selectedCategory, loadCategoryData, categoryNotes, categoryRecs, toggleNote, toggleRec, isNoteSelected, isRecSelected --}}
 <div>
     <label class="block text-sm font-medium text-emerald-400 mb-2">تصنيف الملاحظات</label>
-    <select x-model="selectedCategory" @change="loadCategoryData()" class="w-full rounded-xl border border-emerald-700/50 bg-slate-950 px-4 py-3 text-white focus:border-emerald-500 focus:outline-none text-sm">
+    <select x-model="selectedCategory" @change="onCategoryChange()" class="w-full rounded-xl border border-emerald-700/50 bg-slate-950 px-4 py-3 text-white focus:border-emerald-500 focus:outline-none text-sm">
         <option value="">-- اختر التصنيف --</option>
-        @foreach($categories as $cat)
+        @foreach($categories->unique('name') as $cat)
             <option value="{{ $cat->id }}">{{ $cat->name }}</option>
         @endforeach
     </select>

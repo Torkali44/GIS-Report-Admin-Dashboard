@@ -17,6 +17,13 @@ class DatabaseSeeder extends Seeder
         $adminName = config('auth.admin.name');
         $adminPassword = config('auth.admin.password');
 
+        if (! is_string($adminName) || ! is_string($adminEmail) || ! is_string($adminPassword)
+            || trim($adminName) === '' || trim($adminEmail) === '' || trim($adminPassword) === '') {
+            throw new \RuntimeException(
+                'Set ADMIN_NAME, ADMIN_EMAIL, and ADMIN_PASSWORD in .env before running the database seeder.'
+            );
+        }
+
         User::query()->updateOrCreate(
             ['email' => $adminEmail],
             [

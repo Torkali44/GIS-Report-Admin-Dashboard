@@ -49,4 +49,38 @@ class InspectionAreaTest extends TestCase
             'score' => 75,
         ]);
     }
+
+    public function test_area_from_another_house_cannot_be_updated(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $firstHouse = PropertyHouse::create(['user_id' => $admin->id, 'title' => 'First']);
+        $secondHouse = PropertyHouse::create(['user_id' => $admin->id, 'title' => 'Second']);
+        $area = InspectionArea::create([
+            'property_house_id' => $firstHouse->id,
+            'name' => 'Original',
+            'score' => 50,
+            'sort_order' => 1,
+        ]);
+
+        $response = $this->actingAs($admin)->patch(
+            route('admin.houses.areas.update', [$secondHouse, $area]),
+            ['name' => 'Tampered', 'score' => 100],
+        );
+
+        $response->assertNotFound();
+        $this->assertDatabaseHas('inspection_areas', ['id' => $area->id, 'name' => 'Original', 'score' => 50]);
+    }
+
+    public function test_area_lists_must_be_arrays_of_strings(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $house = PropertyHouse::create(['user_id' => $admin->id, 'title' => 'Test']);
+
+        $response = $this->actingAs($admin)->post(route('admin.houses.areas.store', $house), [
+            'name' => 'Electrical',
+            'notes_list' => ['valid', ['nested' => 'invalid']],
+        ]);
+
+        $response->assertSessionHasErrors('notes_list.1');
+    }
 }
