@@ -20,6 +20,7 @@ Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')-
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function (): void {
     Route::get('/', fn() => redirect()->route('admin.houses.index'));
     Route::get('houses/{house}/report.pdf', [PropertyHouseController::class, 'report'])->name('houses.report');
+    Route::get('houses/{house}/report.docx', [PropertyHouseController::class, 'reportWord'])->name('houses.report.word');
     Route::resource('houses', PropertyHouseController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
     Route::patch('houses/{house}/final-result', [PropertyHouseController::class, 'updateFinalResult'])->name('houses.final-result.update');
     Route::post('houses/{house}/areas', [InspectionAreaController::class, 'store'])->name('houses.areas.store');

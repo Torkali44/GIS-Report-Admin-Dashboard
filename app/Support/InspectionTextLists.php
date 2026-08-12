@@ -28,8 +28,7 @@ class InspectionTextLists
         }
 
         return implode("\n", array_map(
-            fn (int $i, string $text) => ($i + 1) . '- ' . $text,
-            array_keys($items),
+            fn (string $text) => '• ' . $text,
             $items,
         ));
     }
@@ -40,15 +39,28 @@ class InspectionTextLists
      */
     public static function normalize(mixed $input): array
     {
+        if (is_string($input)) {
+            return self::parseMultiline($input);
+        }
+
         if (! is_array($input)) {
             return [];
         }
 
         $out = [];
         foreach ($input as $item) {
-            $text = trim((string) $item);
-            if ($text !== '') {
-                $out[] = $text;
+            if (is_string($item) && str_contains($item, "\n")) {
+                foreach (self::parseMultiline($item) as $line) {
+                    $out[] = $line;
+                }
+            } else {
+                $text = trim((string) $item);
+                if ($text !== '') {
+                    $text = self::cleanItem($text);
+                    if ($text !== '') {
+                        $out[] = $text;
+                    }
+                }
             }
         }
 
@@ -56,18 +68,15 @@ class InspectionTextLists
     }
 
     /**
+     * Parse multiline string into clean array of lines
+     *
      * @return list<string>
      */
-    public static function parseLegacy(?string $text): array
+    public static function parseMultiline(?string $text): array
     {
         $text = trim((string) $text);
         if ($text === '') {
             return [];
-        }
-
-        $decoded = json_decode($text, true);
-        if (is_array($decoded)) {
-            return self::normalize($decoded);
         }
 
         $lines = preg_split('/\r\n|\r|\n/', $text) ?: [];
@@ -78,10 +87,37 @@ class InspectionTextLists
             if ($line === '') {
                 continue;
             }
-            $line = preg_replace('/^\d+[\-\.\)]\s*/u', '', $line) ?? $line;
-            $items[] = trim($line);
+            $clean = self::cleanItem($line);
+            if ($clean !== '') {
+                $items[] = $clean;
+            }
         }
 
-        return self::normalize($items);
+        return array_values($items);
+    }
+
+    /**
+     * Strip leading numbers, bullets, dots, dashes
+     */
+    public static function cleanItem(string $text): string
+    {
+        $text = trim($text);
+        if ($text === '') {
+            return '';
+        }
+
+        // Remove leading 1-, 1., 1), •, -, *, >
+        $cleaned = preg_replace('/^(\d+[\-\.\)]\s*|[•\-\*\>]\s*)+/u', '', $text) ?? $text;
+
+        return trim($cleaned);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function parseLegacy(?string $text): array
+    {
+        return self::parseMultiline($text);
     }
 }
+

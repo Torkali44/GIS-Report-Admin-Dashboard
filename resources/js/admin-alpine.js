@@ -104,6 +104,7 @@ function categoryPickerMixin(getSectionName) {
             const text = this.noteTextFromTemplate(note);
             if (!this.notesList.includes(text)) {
                 this.notesList.push(text);
+                this.syncTextFromLists();
             }
         },
 
@@ -112,12 +113,14 @@ function categoryPickerMixin(getSectionName) {
             const idx = this.notesList.indexOf(text);
             if (idx >= 0) {
                 this.notesList.splice(idx, 1);
+                this.syncTextFromLists();
             }
         },
 
         addRecText(rec) {
             if (!this.recommendationsList.includes(rec.text)) {
                 this.recommendationsList.push(rec.text);
+                this.syncTextFromLists();
             }
         },
 
@@ -125,7 +128,18 @@ function categoryPickerMixin(getSectionName) {
             const idx = this.recommendationsList.indexOf(rec.text);
             if (idx >= 0) {
                 this.recommendationsList.splice(idx, 1);
+                this.syncTextFromLists();
             }
+        },
+
+        syncTextFromLists() {
+            this.notesText = this.notesList.join('\n');
+            this.recommendationsText = this.recommendationsList.join('\n');
+        },
+
+        syncListsFromText() {
+            this.notesList = (this.notesText || '').split('\n').map(s => s.trim()).filter(s => s !== '');
+            this.recommendationsList = (this.recommendationsText || '').split('\n').map(s => s.trim()).filter(s => s !== '');
         },
     };
 }
@@ -136,6 +150,8 @@ export function registerAdminAlpine(Alpine) {
         areaNameField: initialAreaName || '',
         notesList: Array.isArray(initialNotes) ? [...initialNotes] : [],
         recommendationsList: Array.isArray(initialRecs) ? [...initialRecs] : [],
+        notesText: Array.isArray(initialNotes) ? initialNotes.join('\n') : '',
+        recommendationsText: Array.isArray(initialRecs) ? initialRecs.join('\n') : '',
 
         ...categoryPickerMixin(function sectionName() {
             return this.areaNameField || '';
@@ -147,6 +163,7 @@ export function registerAdminAlpine(Alpine) {
 
         startEditing() {
             this.editing = true;
+            this.syncTextFromLists();
             this.$nextTick(() => this.syncCheckboxesFromLists());
         },
     }));
@@ -157,6 +174,8 @@ export function registerAdminAlpine(Alpine) {
         readySections: [],
         notesList: [],
         recommendationsList: [],
+        notesText: '',
+        recommendationsText: '',
 
         ...categoryPickerMixin(function sectionName() {
             return this.selectedSection === '__custom__' ? this.customSection : this.selectedSection;
@@ -187,3 +206,4 @@ export function registerAdminAlpine(Alpine) {
         },
     }));
 }
+
