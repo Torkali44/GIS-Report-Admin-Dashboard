@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Carbon;
 
 class PropertyHouse extends Model
 {
@@ -16,6 +16,7 @@ class PropertyHouse extends Model
         'client_name',
         'address',
         'reference_code',
+        'inspection_date',
         'notes',
         // New fields from images
         'activity',
@@ -52,8 +53,21 @@ class PropertyHouse extends Model
     {
         return [
             'total_percentage' => 'integer',
+            'inspection_date' => 'date',
             'report_delivered_at' => 'date',
         ];
+    }
+
+    public function reportInspectionDate(): Carbon
+    {
+        return $this->inspection_date
+            ?? $this->created_at
+            ?? now();
+    }
+
+    public function reportInspectionDateFormatted(): string
+    {
+        return $this->reportInspectionDate()->format('Y-m-d');
     }
 
     public function user(): BelongsTo

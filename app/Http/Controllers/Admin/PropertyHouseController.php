@@ -54,6 +54,7 @@ class PropertyHouseController extends Controller
             'client_name' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:255'],
             'reference_code' => ['nullable', 'string', 'max:120'],
+            'inspection_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:8000'],
             'activity' => ['nullable', 'string', 'max:255'],
             'property_type' => ['nullable', 'string', 'max:255'],
@@ -106,6 +107,7 @@ class PropertyHouseController extends Controller
             'client_name' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:255'],
             'reference_code' => ['nullable', 'string', 'max:120'],
+            'inspection_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:8000'],
             'activity' => ['nullable', 'string', 'max:255'],
             'property_type' => ['nullable', 'string', 'max:255'],
@@ -173,7 +175,7 @@ class PropertyHouseController extends Controller
         ]);
 
         $reportNo = $house->reference_code ?: ('H-'.$house->id);
-        $reportDate = ($house->created_at ?: now())->format('Y-m-d');
+        $reportDate = $house->reportInspectionDateFormatted();
         $clientName = trim((string) ($house->buyer_name ?? $house->client_name ?? '')) ?: '---';
         $propertyAddress = collect([
             $house->villa_number ? 'فيلا '.$house->villa_number : null,
@@ -233,6 +235,7 @@ class PropertyHouseController extends Controller
         return response($binary, 200, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Content-Length' => (string) strlen($binary),
             'Cache-Control' => 'private, no-store, max-age=0',
             'X-Content-Type-Options' => 'nosniff',
         ]);

@@ -50,7 +50,7 @@
                         autofocus
                         autocomplete="username"
                         class="w-full rounded-xl border border-slate-700 bg-slate-950/50 px-4 py-3.5 text-white outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
-                        placeholder="admin@example.com"
+                        placeholder="البريد الإلكتروني"
                     />
                     @error('email')
                         <p class="mt-2 text-xs text-red-400">{{ $message }}</p>

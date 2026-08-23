@@ -79,6 +79,21 @@
         </div>
 
         <div class="space-y-6">
+            <h2 class="text-xl font-semibold text-emerald-400 border-b border-slate-800 pb-2">بيانات التقرير</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label for="reference_code" class="mb-1 block text-sm font-medium text-slate-300">رقم الطلب / المرجع</label>
+                    <input id="reference_code" name="reference_code" type="text" value="{{ old('reference_code', $house->reference_code) }}" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white focus:border-emerald-500 focus:outline-none" placeholder="مثال: H-9">
+                </div>
+                <div>
+                    <label for="inspection_date" class="mb-1 block text-sm font-medium text-emerald-400">تاريخ الفحص</label>
+                    <input id="inspection_date" name="inspection_date" type="date" value="{{ old('inspection_date', optional($house->inspection_date ?? $house->created_at)->format('Y-m-d')) }}" class="w-full rounded-lg border border-emerald-500/30 bg-slate-950 px-3 py-2 text-white focus:border-emerald-500 focus:outline-none">
+                    <p class="mt-1 text-xs text-slate-500">يظهر في رأس التقرير (PDF و Word). يمكن تعديله لاحقاً.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
             <h2 class="text-xl font-semibold text-emerald-400 border-b border-slate-800 pb-2">مواصفات العقار</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>

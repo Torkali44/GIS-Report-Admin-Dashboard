@@ -110,7 +110,7 @@ class InspectionReportWordGenerator
 
         // ─── HEADER & FOOTER SETUP (PAGES 2+) ─────────────────────────────────
         $reportNo = $house->reference_code ?: ('H-'.$house->id);
-        $reportDate = ($house->created_at ?: now())->format('Y-m-d');
+        $reportDate = $house->reportInspectionDateFormatted();
         $clientName = trim((string) ($house->buyer_name ?? $house->client_name ?? '')) ?: '---';
 
         // Empty first-page parts activate a true cover page without the repeating header/footer.
@@ -414,7 +414,7 @@ class InspectionReportWordGenerator
                 if ($score >= 80) {
                     $bgColor = '00C853';
                     $textColor = 'FFFFFF';
-                    $statusLabel = 'ممتاز';
+                    $statusLabel = InspectionScoreLabels::label($score);
                 } elseif ($score >= 70) {
                     $bgColor = 'FFFF00';
                     $textColor = '000000';
@@ -471,23 +471,26 @@ class InspectionReportWordGenerator
                 $textColor = 'FFFFFF';
             }
 
-            $areaBadge = $section->addTable('BorderTable');
+            if ($notes === []) {
+                $notes = ['تم التحقق من أعمال '.$area->name.'، وتبين أن جميع الأعمال منفذة بشكل سليم ولا توجد ملاحظات.'];
+            }
+
+            // Keep the area header and its notes together — Word moves the whole block
+            // to the next page when only a single line would fit at the bottom.
+            $areaBlock = $section->addTable('NoBorderTable');
+            $areaBlock->addRow(null, ['cantSplit' => true]);
+            $areaCell = $areaBlock->addCell(9638);
+
+            $areaBadge = $areaCell->addTable('BorderTable');
             $areaBadge->addRow();
             $areaBadge->addCell(6746)->addText($area->name, ['bold' => true, 'size' => 12, 'rtl' => true], $rtlRight);
             $areaBadge->addCell(2892, ['bgColor' => $bgColor])->addText("النسبة: {$score}%", ['bold' => true, 'size' => 11.5, 'color' => $textColor, 'rtl' => true], $rtlCenter);
-            $section->addTextBreak(1);
+            $areaCell->addTextBreak(1);
 
-            if ($notes === []) {
-                $section->addText(
-                    '• تم التحقق من أعمال '.$area->name.'، وتبين أن جميع الأعمال منفذة بشكل سليم ولا توجد ملاحظات.',
-                    $fNormalLg,
-                    array_merge($rtlRight, ['spaceAfter' => 60])
-                );
-            } else {
-                foreach ($notes as $noteText) {
-                    $section->addText('• '.$noteText, $fNormalLg, array_merge($rtlRight, ['spaceAfter' => 40]));
-                }
+            foreach ($notes as $noteText) {
+                $areaCell->addText('• '.$noteText, $fNormalLg, array_merge($rtlRight, ['spaceAfter' => 40]));
             }
+
             $section->addTextBreak(1);
         }
 
@@ -640,28 +643,28 @@ class InspectionReportWordGenerator
     {
         $zip = new \ZipArchive;
         if ($zip->open($docxPath) !== true) {
-            return;
+            throw new \RuntimeException('Unable to open generated Word document for RTL patch.');
         }
 
-        $xml = $zip->getFromName('word/document.xml');
-        if ($xml === false) {
-            $zip->close();
-
-            return;
-        }
-
-        // Only patch the section properties block itself — paragraphs already
-        // contain plenty of <w:bidi/> tags, so a whole-document string check
-        // would be a false positive.
-        if (preg_match('/<w:sectPr\b[^>]*>.*?<\/w:sectPr>/s', $xml, $m)) {
-            $sectPr = $m[0];
-            if (strpos($sectPr, '<w:bidi/>') === false) {
-                $patchedSectPr = str_replace('</w:sectPr>', '<w:bidi/></w:sectPr>', $sectPr);
-                $patched = str_replace($sectPr, $patchedSectPr, $xml);
-                $zip->addFromString('word/document.xml', $patched);
+        try {
+            $xml = $zip->getFromName('word/document.xml');
+            if ($xml === false) {
+                throw new \RuntimeException('Generated Word document is missing word/document.xml.');
             }
-        }
 
-        $zip->close();
+            if (preg_match('/<w:sectPr\b[^>]*>.*?<\/w:sectPr>/s', $xml, $m)) {
+                $sectPr = $m[0];
+                if (strpos($sectPr, '<w:bidi/>') === false) {
+                    $patchedSectPr = str_replace('</w:sectPr>', '<w:bidi/></w:sectPr>', $sectPr);
+                    $patched = str_replace($sectPr, $patchedSectPr, $xml);
+                    $zip->deleteName('word/document.xml');
+                    if ($zip->addFromString('word/document.xml', $patched) === false) {
+                        throw new \RuntimeException('Unable to patch Word document RTL settings.');
+                    }
+                }
+            }
+        } finally {
+            $zip->close();
+        }
     }
 }

@@ -73,6 +73,63 @@ class ReportGenerationTest extends TestCase
         }
     }
 
+    public function test_word_report_is_a_valid_zip_archive_with_required_parts(): void
+    {
+        $house = PropertyHouse::create([
+            'user_id' => User::factory()->create(['is_admin' => true])->id,
+            'title' => 'Zip integrity test',
+        ]);
+
+        $binary = app(InspectionReportWordGenerator::class)->renderBinary($house);
+        $tempFile = tempnam(sys_get_temp_dir(), 'word-zip-test-');
+        $this->assertNotFalse($tempFile);
+        file_put_contents($tempFile, $binary);
+
+        $zip = new \ZipArchive;
+        try {
+            $this->assertTrue($zip->open($tempFile) === true);
+            $this->assertNotFalse($zip->locateName('word/document.xml'));
+            $this->assertNotFalse($zip->locateName('[Content_Types].xml'));
+            $this->assertNotFalse($zip->locateName('_rels/.rels'));
+        } finally {
+            $zip->close();
+            @unlink($tempFile);
+        }
+    }
+
+    public function test_word_download_returns_valid_docx_with_content_length(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $house = PropertyHouse::create([
+            'user_id' => $admin->id,
+            'title' => 'Word download test',
+            'inspection_date' => '2026-08-19',
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.houses.report.word', $house));
+
+        $response->assertOk()
+            ->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            ->assertHeader('X-Content-Type-Options', 'nosniff');
+
+        $binary = $response->getContent();
+        $this->assertNotEmpty($binary);
+        $this->assertSame((string) strlen($binary), $response->headers->get('Content-Length'));
+
+        $zip = new \ZipArchive;
+        $tempFile = tempnam(sys_get_temp_dir(), 'word-http-test-');
+        file_put_contents($tempFile, $binary);
+        try {
+            $this->assertTrue($zip->open($tempFile) === true);
+            $documentXml = $zip->getFromName('word/document.xml');
+            $this->assertIsString($documentXml);
+            $this->assertStringContainsString('2026-08-19', $documentXml);
+        } finally {
+            $zip->close();
+            @unlink($tempFile);
+        }
+    }
+
     public function test_pdf_download_does_not_leave_a_public_copy_of_the_report(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);

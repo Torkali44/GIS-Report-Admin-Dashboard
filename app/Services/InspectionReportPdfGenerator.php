@@ -36,7 +36,7 @@ class InspectionReportPdfGenerator
             ]);
 
             $reportNo = $house->reference_code ?: ('H-' . $house->id);
-            $reportDate = ($house->created_at ?: now())->format('Y-m-d');
+            $reportDate = $house->reportInspectionDateFormatted();
             $logoPath = $this->resolveLogoPath();
 
             $pdf = new ReportTCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
@@ -188,7 +188,7 @@ class InspectionReportPdfGenerator
         }
 
         $reportNo = $house->reference_code ?: ('H-' . $house->id);
-        $reportDate = ($house->created_at ?: now())->format('Y-m-d');
+        $reportDate = $house->reportInspectionDateFormatted();
 
         $addressParts = [];
         if ($house->villa_number) {
@@ -546,9 +546,16 @@ HTML,
 
         $pageW = $pdf->getPageWidth();
         $rightMargin = 14;
+        $pageBottom = $pdf->getPageHeight() - 40;
 
         foreach ($areas as $area) {
-            if ($pdf->GetY() > $pdf->getPageHeight() - 40) {
+            $noteItems = $area->notesList();
+            if ($noteItems === []) {
+                $noteItems = ['تم التحقق من أعمال ' . $area->name . '، وتبين أن جميع الأعمال منفذة بشكل سليم ولا توجد ملاحظات.'];
+            }
+
+            $blockHeight = $this->estimateTechnicalNotesBlockHeight($pdf, $noteItems);
+            if ($pdf->GetY() + $blockHeight > $pageBottom) {
                 $pdf->AddPage();
             }
 
@@ -617,11 +624,6 @@ HTML,
             $pdf->SetY($currentY + $h + 6);
 
             $pdf->SetFont($this->fontBold, '', 12);
-            $noteItems = $area->notesList();
-            if ($noteItems === []) {
-                $noteItems = ['تم التحقق من أعمال ' . $area->name . '، وتبين أن جميع الأعمال منفذة بشكل سليم ولا توجد ملاحظات.'];
-            }
-
             $pdf->setCellHeightRatio(1.8);
             foreach ($noteItems as $noteText) {
                 $line = '• ' . $noteText;
@@ -632,6 +634,25 @@ HTML,
 
             $pdf->Ln(5);
         }
+    }
+
+    /**
+     * Estimate the vertical space needed for one technical-notes area block
+     * (title bar + all bullet notes) so we can avoid orphan headers at page bottom.
+     */
+    private function estimateTechnicalNotesBlockHeight(TCPDF $pdf, array $noteItems): float
+    {
+        $headerHeight = 18.0;
+        $notesHeight = 0.0;
+
+        $pdf->SetFont($this->fontBold, '', 12);
+        $contentWidth = $pdf->getPageWidth() - $pdf->getMargins()['left'] - $pdf->getMargins()['right'];
+
+        foreach ($noteItems as $noteText) {
+            $notesHeight += $pdf->getStringHeight($contentWidth, '• ' . $noteText) + 2;
+        }
+
+        return $headerHeight + $notesHeight + 5;
     }
 
     private function renderRecommendations(TCPDF $pdf, $areas): void
