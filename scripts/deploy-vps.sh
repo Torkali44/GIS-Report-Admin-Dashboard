@@ -21,6 +21,9 @@ fi
 
 composer install --no-dev --optimize-autoloader --no-interaction
 
+# Always read fresh .env values (ADMIN_*, DB_*, …) before migrate/seed.
+php artisan config:clear
+
 if [[ ! -f database/database.sqlite ]]; then
     touch database/database.sqlite
 fi
@@ -34,6 +37,11 @@ if $FRESH; then
 else
     php artisan migrate --force
     php artisan db:seed --force
+fi
+
+# Re-sync admin from current .env (safe if password contains # or special chars).
+if [[ -f scripts/sync-admin-from-env.php ]]; then
+    php scripts/sync-admin-from-env.php
 fi
 
 php artisan storage:link --force 2>/dev/null || php artisan storage:link

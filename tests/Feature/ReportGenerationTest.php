@@ -6,7 +6,9 @@ use App\Models\InspectionArea;
 use App\Models\PropertyHouse;
 use App\Models\User;
 use App\Services\InspectionReportPdfGenerator;
+use App\Services\InspectionReportPdfGeneratorEn;
 use App\Services\InspectionReportWordGenerator;
+use App\Services\InspectionReportWordGeneratorEn;
 use App\Support\ReportCache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -36,11 +38,103 @@ class ReportGenerationTest extends TestCase
 
         $pdf = app(InspectionReportPdfGenerator::class)->renderBinary($house);
         $word = app(InspectionReportWordGenerator::class)->renderBinary($house);
+        $pdfEn = app(InspectionReportPdfGeneratorEn::class)->renderBinary($house);
+        $wordEn = app(InspectionReportWordGeneratorEn::class)->renderBinary($house);
 
         $this->assertStringStartsWith('%PDF-', $pdf);
         $this->assertStringStartsWith('PK', $word);
+        $this->assertStringStartsWith('%PDF-', $pdfEn);
+        $this->assertStringStartsWith('PK', $wordEn);
         $this->assertGreaterThan(1000, strlen($pdf));
         $this->assertGreaterThan(1000, strlen($word));
+        $this->assertGreaterThan(1000, strlen($pdfEn));
+        $this->assertGreaterThan(1000, strlen($wordEn));
+    }
+
+    public function test_english_word_report_is_ltr_and_uses_english_content(): void
+    {
+        $house = PropertyHouse::create([
+            'user_id' => User::factory()->create(['is_admin' => true])->id,
+            'title' => 'EN layout test',
+            'final_result_text_en' => 'Property is ready for use.',
+            'inspection_date' => '2026-09-20',
+        ]);
+        InspectionArea::create([
+            'property_house_id' => $house->id,
+            'name' => 'الكهرباء',
+            'name_en' => 'Electrical Works',
+            'score' => 80,
+            'sort_order' => 1,
+            'notes_json' => ['ملاحظة عربية'],
+            'notes_json_en' => ['English note only'],
+        ]);
+
+        $binary = app(InspectionReportWordGeneratorEn::class)->renderBinary($house);
+        $tempFile = tempnam(sys_get_temp_dir(), 'word-en-layout-');
+        file_put_contents($tempFile, $binary);
+
+        $zip = new \ZipArchive;
+        try {
+            $this->assertTrue($zip->open($tempFile) === true);
+            $documentXml = $zip->getFromName('word/document.xml');
+            $this->assertIsString($documentXml);
+            $this->assertStringContainsString('Report No.', $documentXml);
+            $this->assertStringContainsString('Electrical Works', $documentXml);
+            $this->assertStringContainsString('English note only', $documentXml);
+            $this->assertStringContainsString('Property is ready for use.', $documentXml);
+            $this->assertStringNotContainsString('<w:bidi/>', $documentXml);
+
+            // Header part (pages 2+) uses Request No.
+            $headerFound = false;
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $name = $zip->getNameIndex($i);
+                if (is_string($name) && str_starts_with($name, 'word/header')) {
+                    $headerXml = $zip->getFromIndex($i);
+                    if (is_string($headerXml) && str_contains($headerXml, 'Request No.')) {
+                        $headerFound = true;
+                        break;
+                    }
+                }
+            }
+            $this->assertTrue($headerFound, 'English Word header should contain Request No.');
+        } finally {
+            $zip->close();
+            @unlink($tempFile);
+        }
+    }
+
+    public function test_english_report_routes_return_valid_files(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $house = PropertyHouse::create([
+            'user_id' => $admin->id,
+            'title' => 'EN download test',
+        ]);
+
+        $pdfResponse = $this->actingAs($admin)->get(route('admin.houses.report.en', $house));
+        $pdfResponse->assertOk()->assertHeader('Content-Type', 'application/pdf');
+        $this->assertStringStartsWith('%PDF-', $pdfResponse->getContent());
+
+        $wordResponse = $this->actingAs($admin)->get(route('admin.houses.report.word.en', $house));
+        $wordResponse->assertOk();
+        $this->assertStringStartsWith('PK', $wordResponse->getContent());
+    }
+
+    public function test_english_pdf_has_no_blank_intro_pages(): void
+    {
+        $house = PropertyHouse::create([
+            'user_id' => User::factory()->create(['is_admin' => true])->id,
+            'title' => 'Blank page regression',
+            'total_percentage' => 75,
+        ]);
+
+        $pdf = app(InspectionReportPdfGeneratorEn::class)->renderBinary($house);
+
+        $this->assertStringStartsWith('%PDF-', $pdf);
+        // Ghost pages used to inflate EN intro to ~13 pages; healthy reports stay closer to Arabic (~10).
+        $pageCount = preg_match_all('/\/Type\s*\/Page[^s]/', $pdf);
+        $this->assertGreaterThan(5, $pageCount);
+        $this->assertLessThanOrEqual(12, $pageCount, 'English PDF should not contain blank intro ghost pages');
     }
 
     public function test_word_report_contains_rtl_document_and_table_settings(): void

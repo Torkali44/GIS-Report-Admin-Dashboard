@@ -8,17 +8,31 @@
         @method('PATCH')
 
         <div>
-            <label for="final_result_text" class="block text-sm font-medium text-slate-300 mb-2">نص النتيجة النهائية</label>
+            <label for="final_result_text" class="block text-sm font-medium text-slate-300 mb-2">نص النتيجة النهائية (عربي)</label>
             <textarea id="final_result_text" name="final_result_text" rows="12"
                 class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white leading-relaxed focus:border-amber-500 focus:outline-none"
                 placeholder="اكتب فقرات النتيجة والملاحظات الرئيسية...">{{ old('final_result_text', $house->final_result_text) }}</textarea>
         </div>
 
         <div>
-            <label for="final_general_notes" class="block text-sm font-medium text-slate-300 mb-2">ملاحظات عامة (اختياري)</label>
+            <label for="final_result_text_en" class="block text-sm font-medium text-sky-300 mb-2">Final Result Text (English) — optional</label>
+            <textarea id="final_result_text_en" name="final_result_text_en" rows="10"
+                class="w-full rounded-xl border border-sky-800/50 bg-slate-950 px-4 py-3 text-sm text-white leading-relaxed focus:border-sky-500 focus:outline-none"
+                placeholder="English final result paragraphs (falls back to Arabic if empty)...">{{ old('final_result_text_en', $house->final_result_text_en) }}</textarea>
+        </div>
+
+        <div>
+            <label for="final_general_notes" class="block text-sm font-medium text-slate-300 mb-2">ملاحظات عامة (عربي — اختياري)</label>
             <textarea id="final_general_notes" name="final_general_notes" rows="4"
                 class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white leading-relaxed focus:border-amber-500 focus:outline-none"
                 placeholder="ملاحظات عامة تظهر قبل تقييم الفاحص...">{{ old('final_general_notes', $house->final_general_notes) }}</textarea>
+        </div>
+
+        <div>
+            <label for="final_general_notes_en" class="block text-sm font-medium text-sky-300 mb-2">General Notes (English) — optional</label>
+            <textarea id="final_general_notes_en" name="final_general_notes_en" rows="4"
+                class="w-full rounded-xl border border-sky-800/50 bg-slate-950 px-4 py-3 text-sm text-white leading-relaxed focus:border-sky-500 focus:outline-none"
+                placeholder="English general notes (falls back to Arabic if empty)...">{{ old('final_general_notes_en', $house->final_general_notes_en) }}</textarea>
         </div>
 
         {{-- تجاوز تقييم الفاحص --}}

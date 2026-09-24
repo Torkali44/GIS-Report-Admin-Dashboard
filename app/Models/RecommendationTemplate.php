@@ -10,6 +10,7 @@ class RecommendationTemplate extends Model
     protected $fillable = [
         'note_category_id',
         'text',
+        'text_en',
         'sort_order',
     ];
 

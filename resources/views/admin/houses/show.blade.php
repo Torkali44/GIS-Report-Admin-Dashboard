@@ -56,32 +56,24 @@
                 </svg>
                 <span>تعديل البيانات</span>
             </a>
-            <a href="{{ route('admin.houses.report', ['house' => $house, 'inline' => 1]) }}" target="_blank"
-                class="group flex items-center gap-2 rounded-xl bg-emerald-500/20 px-4 py-3 font-bold text-emerald-400 transition hover:bg-emerald-500 hover:text-slate-950">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                <span>عرض التقرير</span>
-            </a>
-            <a href="{{ route('admin.houses.report', $house) }}"
-                class="group flex items-center gap-2 rounded-xl bg-emerald-500 px-6 py-3 font-bold text-slate-950 transition hover:bg-emerald-400 hover:shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                <span>تحميل PDF</span>
-            </a>
-            <a href="{{ route('admin.houses.report.word', $house) }}"
-                class="group flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-bold text-white transition hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span>تحميل Word</span>
-            </a>
+            <div class="flex flex-wrap gap-2 rounded-2xl border border-emerald-800/40 bg-emerald-950/20 p-1.5">
+                <span class="self-center px-2 text-xs font-bold text-emerald-400">عربي</span>
+                <a href="{{ route('admin.houses.report', ['house' => $house, 'inline' => 1]) }}" target="_blank"
+                    class="rounded-xl bg-emerald-500/20 px-3 py-2.5 text-sm font-bold text-emerald-400 hover:bg-emerald-500 hover:text-slate-950">عرض</a>
+                <a href="{{ route('admin.houses.report', $house) }}"
+                    class="rounded-xl bg-emerald-500 px-3 py-2.5 text-sm font-bold text-slate-950 hover:bg-emerald-400">PDF</a>
+                <a href="{{ route('admin.houses.report.word', $house) }}"
+                    class="rounded-xl bg-blue-600 px-3 py-2.5 text-sm font-bold text-white hover:bg-blue-500">Word</a>
+            </div>
+            <div class="flex flex-wrap gap-2 rounded-2xl border border-sky-800/40 bg-sky-950/20 p-1.5">
+                <span class="self-center px-2 text-xs font-bold text-sky-300">EN</span>
+                <a href="{{ route('admin.houses.report.en', ['house' => $house, 'inline' => 1]) }}" target="_blank"
+                    class="rounded-xl bg-sky-500/20 px-3 py-2.5 text-sm font-bold text-sky-300 hover:bg-sky-500 hover:text-slate-950">View</a>
+                <a href="{{ route('admin.houses.report.en', $house) }}"
+                    class="rounded-xl bg-sky-500 px-3 py-2.5 text-sm font-bold text-slate-950 hover:bg-sky-400">PDF</a>
+                <a href="{{ route('admin.houses.report.word.en', $house) }}"
+                    class="rounded-xl bg-indigo-600 px-3 py-2.5 text-sm font-bold text-white hover:bg-indigo-500">Word</a>
+            </div>
         </div>
     </div>
 
@@ -96,12 +88,12 @@
                     @csrf
 
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-2">اسم القسم</label>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">اسم القسم (عربي)</label>
                         <select name="name" x-model="selectedSection" @change="onSectionChange()" required
                             class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white focus:border-emerald-500 focus:outline-none">
                             <option value="">-- اختر القسم --</option>
                             @foreach($readySections->unique('name') as $sec)
-                                <option value="{{ $sec->name }}">{{ $sec->name }}</option>
+                                <option value="{{ $sec->name }}" data-name-en="{{ $sec->name_en }}">{{ $sec->name }}@if($sec->name_en) ({{ $sec->name_en }})@endif</option>
                             @endforeach
                             <option value="__custom__">أخرى (إدخال يدوي)</option>
                         </select>
@@ -110,7 +102,11 @@
                             x-bind:disabled="selectedSection !== '__custom__' && selectedSection !== ''"
                             :required="selectedSection === '__custom__' || selectedSection === ''"
                             class="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white focus:border-emerald-500 focus:outline-none"
-                            placeholder="أدخل اسم القسم">
+                            placeholder="أدخل اسم القسم بالعربي">
+                        <label class="mt-3 block text-sm font-medium text-sky-300 mb-2">Section name (English) — optional</label>
+                        <input type="text" name="name_en" x-model="sectionNameEn"
+                            class="w-full rounded-xl border border-sky-800/50 bg-slate-950 px-4 py-3 text-white focus:border-sky-500 focus:outline-none"
+                            placeholder="e.g. Electrical Works">
                     </div>
 
                     {{-- Score --}}
@@ -121,8 +117,16 @@
                     </div>
 
                     @include('admin.houses._category_picker')
-                        @include('admin.houses._text_list_field', ['itemsVar' => 'notesList', 'label' => 'ملاحظات إضافية (يدوي)', 'accent' => 'emerald', 'inputPrefix' => 'notes_list'])
-                        @include('admin.houses._text_list_field', ['itemsVar' => 'recommendationsList', 'label' => 'توصيات إضافية (يدوي)', 'accent' => 'amber', 'inputPrefix' => 'recommendations_list'])
+                        @include('admin.houses._text_list_field', ['itemsVar' => 'notesList', 'label' => 'ملاحظات إضافية (عربي)', 'accent' => 'emerald', 'inputPrefix' => 'notes_list'])
+                        @include('admin.houses._text_list_field', ['itemsVar' => 'recommendationsList', 'label' => 'توصيات إضافية (عربي)', 'accent' => 'amber', 'inputPrefix' => 'recommendations_list'])
+                        <div>
+                            <label class="mb-1 block text-sm font-medium text-sky-300">Notes (English) — optional</label>
+                            <textarea name="notes_text_en" x-model="notesTextEn" @input="syncListsFromText()" rows="3" class="w-full rounded-xl border border-sky-800/50 bg-slate-950 px-4 py-3 text-sm text-white focus:border-sky-500 focus:outline-none" placeholder="One note per line..."></textarea>
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-sm font-medium text-sky-300">Recommendations (English) — optional</label>
+                            <textarea name="recommendations_text_en" x-model="recommendationsTextEn" @input="syncListsFromText()" rows="3" class="w-full rounded-xl border border-sky-800/50 bg-slate-950 px-4 py-3 text-sm text-white focus:border-sky-500 focus:outline-none" placeholder="One recommendation per line..."></textarea>
+                        </div>
 
                         <button type="submit" class="w-full rounded-xl bg-emerald-500 py-3 font-bold text-slate-950 transition hover:bg-emerald-400">
                             إضافة القسم للتقرير
@@ -153,7 +157,7 @@
                         }
                     @endphp
                     <div id="area-{{ $area->id }}" class="rounded-2xl border border-slate-800 bg-slate-900/20 overflow-hidden"
-                         x-data="areaCardEditor(@js($area->notesList()), @js($area->recommendationsList()), @js($area->name))">
+                         x-data="areaCardEditor(@js($area->notesList()), @js($area->recommendationsList()), @js($area->name), @js($area->name_en), @js($area->notes_json_en ?? []), @js($area->recommendations_json_en ?? []))">
                         <div class="flex items-center justify-between bg-slate-900/40 px-6 py-4 border-b border-slate-800">
                             <div class="flex items-center gap-4 flex-1 min-w-0">
                                 <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500 font-bold text-sm">{{ $area->sort_order }}</span>
@@ -185,8 +189,12 @@
                             @csrf @method('PATCH')
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs text-slate-500 mb-1">اسم القسم</label>
+                                    <label class="block text-xs text-slate-500 mb-1">اسم القسم (عربي)</label>
                                     <input type="text" name="name" x-model="areaNameField" required class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-sky-400 mb-1">Section name (EN)</label>
+                                    <input type="text" name="name_en" x-model="areaNameEnField" class="w-full rounded-lg border border-sky-800/50 bg-slate-950 px-3 py-2 text-sm text-white focus:border-sky-500 focus:outline-none">
                                 </div>
                                 <div>
                                     <label class="block text-xs text-slate-500 mb-1">النسبة</label>
@@ -197,8 +205,16 @@
                                 <p class="text-xs font-bold text-emerald-400">اختر من الجاهز أو أضف يدوياً</p>
                                 @include('admin.houses._category_picker')
                             </div>
-                            @include('admin.houses._text_list_field', ['itemsVar' => 'notesList', 'label' => 'ملاحظات إضافية (يدوي)', 'accent' => 'emerald', 'inputPrefix' => 'notes_list'])
-                            @include('admin.houses._text_list_field', ['itemsVar' => 'recommendationsList', 'label' => 'توصيات إضافية (يدوي)', 'accent' => 'amber', 'inputPrefix' => 'recommendations_list'])
+                            @include('admin.houses._text_list_field', ['itemsVar' => 'notesList', 'label' => 'ملاحظات إضافية (عربي)', 'accent' => 'emerald', 'inputPrefix' => 'notes_list'])
+                            @include('admin.houses._text_list_field', ['itemsVar' => 'recommendationsList', 'label' => 'توصيات إضافية (عربي)', 'accent' => 'amber', 'inputPrefix' => 'recommendations_list'])
+                            <div>
+                                <label class="mb-1 block text-xs font-medium text-sky-300">Notes (English) — optional</label>
+                                <textarea name="notes_text_en" x-model="notesTextEn" rows="3" class="w-full rounded-lg border border-sky-800/50 bg-slate-950 px-3 py-2 text-sm text-white focus:border-sky-500 focus:outline-none" placeholder="One note per line..."></textarea>
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-xs font-medium text-sky-300">Recommendations (English) — optional</label>
+                                <textarea name="recommendations_text_en" x-model="recsTextEn" rows="3" class="w-full rounded-lg border border-sky-800/50 bg-slate-950 px-3 py-2 text-sm text-white focus:border-sky-500 focus:outline-none" placeholder="One recommendation per line..."></textarea>
+                            </div>
                             <div class="flex gap-2">
                                 <button type="submit" class="rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-400">حفظ التعديلات</button>
                                 <button type="button" @click="editing = false" class="rounded-lg bg-slate-800 px-4 py-2 text-xs font-bold text-white hover:bg-slate-700">إلغاء</button>

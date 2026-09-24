@@ -90,12 +90,18 @@
                                     <span class="shrink-0 flex h-6 w-6 items-center justify-center rounded bg-slate-700 text-xs text-white font-bold mt-1">{{ $loop->iteration }}</span>
                                     <div class="flex-1 min-w-0">
                                         <p x-show="!editingNote" data-ready-text class="text-sm text-slate-300 leading-relaxed">{{ $note->text }}</p>
-                                        <form x-show="editingNote" x-cloak method="post" action="{{ route('admin.ready-notes.notes.update', $note) }}" data-ajax-ready-form class="flex items-end gap-2">
+                                        @if($note->text_en)
+                                            <p x-show="!editingNote" class="text-xs text-sky-400/80 mt-1">{{ $note->text_en }}</p>
+                                        @endif
+                                        <form x-show="editingNote" x-cloak method="post" action="{{ route('admin.ready-notes.notes.update', $note) }}" data-ajax-ready-form class="space-y-2">
                                             @csrf
                                             @method('PATCH')
-                                            <textarea name="text" rows="2" class="flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">{{ $note->text }}</textarea>
-                                            <button type="submit" class="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-bold text-slate-950 shrink-0">حفظ</button>
-                                            <button type="button" @click="editingNote = false" class="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-bold text-slate-300 shrink-0">إلغاء</button>
+                                            <textarea name="text" rows="2" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">{{ $note->text }}</textarea>
+                                            <textarea name="text_en" rows="2" class="w-full rounded-lg border border-sky-800/50 bg-slate-950 px-3 py-2 text-sm text-white focus:border-sky-500 focus:outline-none" placeholder="English text (optional)">{{ $note->text_en }}</textarea>
+                                            <div class="flex gap-2">
+                                                <button type="submit" class="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-bold text-slate-950">حفظ</button>
+                                                <button type="button" @click="editingNote = false" class="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-bold text-slate-300">إلغاء</button>
+                                            </div>
                                         </form>
                                     </div>
                                     <div class="flex shrink-0 items-center gap-1" x-show="!editingNote">
@@ -113,13 +119,12 @@
                         </div>
 
                         {{-- Add New Note --}}
-                        <form method="post" action="{{ route('admin.ready-notes.notes.store') }}" class="mt-3 flex items-end gap-3">
+                        <form method="post" action="{{ route('admin.ready-notes.notes.store') }}" class="mt-3 space-y-2">
                             @csrf
                             <input type="hidden" name="note_category_id" value="{{ $category->id }}">
-                            <div class="flex-1">
-                                <textarea name="text" rows="2" required class="w-full rounded-lg border border-dashed border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none" placeholder="أضف ملاحظة جديدة... استخدم (الموقع) كمتغير"></textarea>
-                            </div>
-                            <button type="submit" class="rounded-lg bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-400 hover:bg-emerald-500 hover:text-slate-950 transition shrink-0">+ إضافة ملاحظة</button>
+                            <textarea name="text" rows="2" required class="w-full rounded-lg border border-dashed border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none" placeholder="ملاحظة عربية... استخدم (الموقع) كمتغير"></textarea>
+                            <textarea name="text_en" rows="2" class="w-full rounded-lg border border-dashed border-sky-800/40 bg-slate-950 px-3 py-2 text-sm text-white focus:border-sky-500 focus:outline-none" placeholder="English note (optional) — use (location) as placeholder"></textarea>
+                            <button type="submit" class="rounded-lg bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-400 hover:bg-emerald-500 hover:text-slate-950 transition">+ إضافة ملاحظة</button>
                         </form>
                     </div>
 
@@ -135,12 +140,18 @@
                                     <span class="shrink-0 flex h-6 w-6 items-center justify-center rounded bg-amber-700/30 text-xs text-amber-400 font-bold mt-1">{{ $loop->iteration }}</span>
                                     <div class="flex-1 min-w-0">
                                         <p x-show="!editingRec" data-ready-text class="text-sm text-amber-200/80 leading-relaxed">{{ $rec->text }}</p>
-                                        <form x-show="editingRec" x-cloak method="post" action="{{ route('admin.ready-notes.recommendations.update', $rec) }}" data-ajax-ready-form class="flex items-end gap-2">
+                                        @if($rec->text_en)
+                                            <p x-show="!editingRec" class="text-xs text-sky-400/80 mt-1">{{ $rec->text_en }}</p>
+                                        @endif
+                                        <form x-show="editingRec" x-cloak method="post" action="{{ route('admin.ready-notes.recommendations.update', $rec) }}" data-ajax-ready-form class="space-y-2">
                                             @csrf
                                             @method('PATCH')
-                                            <textarea name="text" rows="2" class="flex-1 rounded-lg border border-amber-700/50 bg-slate-950 px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none">{{ $rec->text }}</textarea>
-                                            <button type="submit" class="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-slate-950 shrink-0">حفظ</button>
-                                            <button type="button" @click="editingRec = false" class="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-bold text-slate-300 shrink-0">إلغاء</button>
+                                            <textarea name="text" rows="2" class="w-full rounded-lg border border-amber-700/50 bg-slate-950 px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none">{{ $rec->text }}</textarea>
+                                            <textarea name="text_en" rows="2" class="w-full rounded-lg border border-sky-800/50 bg-slate-950 px-3 py-2 text-sm text-white focus:border-sky-500 focus:outline-none" placeholder="English text (optional)">{{ $rec->text_en }}</textarea>
+                                            <div class="flex gap-2">
+                                                <button type="submit" class="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-slate-950">حفظ</button>
+                                                <button type="button" @click="editingRec = false" class="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-bold text-slate-300">إلغاء</button>
+                                            </div>
                                         </form>
                                     </div>
                                     <div class="flex shrink-0 items-center gap-1" x-show="!editingRec">
@@ -157,13 +168,12 @@
                             @endforeach
                         </div>
 
-                        <form method="post" action="{{ route('admin.ready-notes.recommendations.store') }}" class="mt-3 flex items-end gap-3">
+                        <form method="post" action="{{ route('admin.ready-notes.recommendations.store') }}" class="mt-3 space-y-2">
                             @csrf
                             <input type="hidden" name="note_category_id" value="{{ $category->id }}">
-                            <div class="flex-1">
-                                <textarea name="text" rows="2" required class="w-full rounded-lg border border-dashed border-amber-700/30 bg-slate-950 px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none" placeholder="أضف توصية جديدة..."></textarea>
-                            </div>
-                            <button type="submit" class="rounded-lg bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-400 hover:bg-amber-500 hover:text-slate-950 transition shrink-0">+ إضافة توصية</button>
+                            <textarea name="text" rows="2" required class="w-full rounded-lg border border-dashed border-amber-700/30 bg-slate-950 px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none" placeholder="توصية عربية..."></textarea>
+                            <textarea name="text_en" rows="2" class="w-full rounded-lg border border-dashed border-sky-800/40 bg-slate-950 px-3 py-2 text-sm text-white focus:border-sky-500 focus:outline-none" placeholder="English recommendation (optional)"></textarea>
+                            <button type="submit" class="rounded-lg bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-400 hover:bg-amber-500 hover:text-slate-950 transition">+ إضافة توصية</button>
                         </form>
                     </div>
                 </div>

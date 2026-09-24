@@ -9,6 +9,7 @@ class ReadySection extends Model
 {
     protected $fillable = [
         'name',
+        'name_en',
         'note_category_id',
         'sort_order',
     ];

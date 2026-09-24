@@ -27,13 +27,20 @@ class InspectionAreaController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'name_en' => ['nullable', 'string', 'max:255'],
             'score' => ['nullable', 'integer', 'min:0', 'max:100'],
             'notes_text' => ['nullable', 'string', 'max:20000'],
             'notes_list' => ['nullable', 'array', 'max:50'],
             'notes_list.*' => ['nullable', 'string', 'max:2000'],
+            'notes_text_en' => ['nullable', 'string', 'max:20000'],
+            'notes_list_en' => ['nullable', 'array', 'max:50'],
+            'notes_list_en.*' => ['nullable', 'string', 'max:2000'],
             'recommendations_text' => ['nullable', 'string', 'max:20000'],
             'recommendations_list' => ['nullable', 'array', 'max:50'],
             'recommendations_list.*' => ['nullable', 'string', 'max:2000'],
+            'recommendations_text_en' => ['nullable', 'string', 'max:20000'],
+            'recommendations_list_en' => ['nullable', 'array', 'max:50'],
+            'recommendations_list_en.*' => ['nullable', 'string', 'max:2000'],
         ], [
             'name.required' => 'يرجى اختيار أو كتابة "اسم القسم" قبل الحفظ.',
             'score.integer' => 'حقل "النسبة" يجب أن يكون رقماً صحيحاً.',
@@ -41,20 +48,29 @@ class InspectionAreaController extends Controller
 
         $rawNotes = $request->filled('notes_text') ? $data['notes_text'] : ($data['notes_list'] ?? []);
         $rawRecs = $request->filled('recommendations_text') ? $data['recommendations_text'] : ($data['recommendations_list'] ?? []);
+        $rawNotesEn = $request->filled('notes_text_en') ? $data['notes_text_en'] : ($data['notes_list_en'] ?? []);
+        $rawRecsEn = $request->filled('recommendations_text_en') ? $data['recommendations_text_en'] : ($data['recommendations_list_en'] ?? []);
 
         $notes = InspectionTextLists::normalize($rawNotes);
         $recs = InspectionTextLists::normalize($rawRecs);
+        $notesEn = InspectionTextLists::normalize($rawNotesEn);
+        $recsEn = InspectionTextLists::normalize($rawRecsEn);
 
-        $area = DB::transaction(function () use ($house, $data, $notes, $recs): InspectionArea {
+        $area = DB::transaction(function () use ($house, $data, $notes, $recs, $notesEn, $recsEn): InspectionArea {
             $lockedHouse = $this->lockHouse($house);
             $max = (int) $lockedHouse->inspectionAreas()->max('sort_order');
             $area = $lockedHouse->inspectionAreas()->create([
                 'name' => $data['name'],
+                'name_en' => $data['name_en'] ?? null,
                 'score' => $data['score'] ?? 0,
                 'notes_json' => $notes,
+                'notes_json_en' => $notesEn,
                 'recommendations_json' => $recs,
+                'recommendations_json_en' => $recsEn,
                 'additional_info' => InspectionTextLists::formatForStorage($notes),
+                'additional_info_en' => InspectionTextLists::formatForStorage($notesEn),
                 'recommendations' => InspectionTextLists::formatForStorage($recs),
+                'recommendations_en' => InspectionTextLists::formatForStorage($recsEn),
                 'sort_order' => $max + 1,
             ]);
 
@@ -78,13 +94,20 @@ class InspectionAreaController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'name_en' => ['nullable', 'string', 'max:255'],
             'score' => ['nullable', 'integer', 'min:0', 'max:100'],
             'notes_text' => ['nullable', 'string', 'max:20000'],
             'notes_list' => ['nullable', 'array', 'max:50'],
             'notes_list.*' => ['nullable', 'string', 'max:2000'],
+            'notes_text_en' => ['nullable', 'string', 'max:20000'],
+            'notes_list_en' => ['nullable', 'array', 'max:50'],
+            'notes_list_en.*' => ['nullable', 'string', 'max:2000'],
             'recommendations_text' => ['nullable', 'string', 'max:20000'],
             'recommendations_list' => ['nullable', 'array', 'max:50'],
             'recommendations_list.*' => ['nullable', 'string', 'max:2000'],
+            'recommendations_text_en' => ['nullable', 'string', 'max:20000'],
+            'recommendations_list_en' => ['nullable', 'array', 'max:50'],
+            'recommendations_list_en.*' => ['nullable', 'string', 'max:2000'],
         ], [
             'name.required' => 'يرجى اختيار أو كتابة "اسم القسم" قبل الحفظ.',
             'score.integer' => 'حقل "النسبة" يجب أن يكون رقماً صحيحاً.',
@@ -92,22 +115,31 @@ class InspectionAreaController extends Controller
 
         $rawNotes = $request->filled('notes_text') ? $data['notes_text'] : ($data['notes_list'] ?? []);
         $rawRecs = $request->filled('recommendations_text') ? $data['recommendations_text'] : ($data['recommendations_list'] ?? []);
+        $rawNotesEn = $request->filled('notes_text_en') ? $data['notes_text_en'] : ($data['notes_list_en'] ?? []);
+        $rawRecsEn = $request->filled('recommendations_text_en') ? $data['recommendations_text_en'] : ($data['recommendations_list_en'] ?? []);
 
         $notes = InspectionTextLists::normalize($rawNotes);
         $recs = InspectionTextLists::normalize($rawRecs);
+        $notesEn = InspectionTextLists::normalize($rawNotesEn);
+        $recsEn = InspectionTextLists::normalize($rawRecsEn);
 
-        $area = DB::transaction(function () use ($house, $area, $data, $notes, $recs): InspectionArea {
+        $area = DB::transaction(function () use ($house, $area, $data, $notes, $recs, $notesEn, $recsEn): InspectionArea {
             $lockedHouse = $this->lockHouse($house);
             $lockedArea = InspectionArea::query()->lockForUpdate()->findOrFail($area->id);
             $this->assertAreaBelongs($lockedHouse, $lockedArea);
 
             $lockedArea->update([
                 'name' => $data['name'],
+                'name_en' => $data['name_en'] ?? null,
                 'score' => $data['score'] ?? 0,
                 'notes_json' => $notes,
+                'notes_json_en' => $notesEn,
                 'recommendations_json' => $recs,
+                'recommendations_json_en' => $recsEn,
                 'additional_info' => InspectionTextLists::formatForStorage($notes),
+                'additional_info_en' => InspectionTextLists::formatForStorage($notesEn),
                 'recommendations' => InspectionTextLists::formatForStorage($recs),
+                'recommendations_en' => InspectionTextLists::formatForStorage($recsEn),
             ]);
             $lockedHouse->touch();
 

@@ -81,7 +81,7 @@ class InspectionReportWordGenerator
         $fRedHeader = ['name' => 'Arial', 'size' => 13.5, 'bold' => true, 'rtl' => true, 'color' => 'C00000'];
         $fRedTitle = ['name' => 'Arial', 'size' => 16,   'bold' => true, 'rtl' => true, 'color' => 'C00000'];
         $fRedUnder = ['name' => 'Arial', 'size' => 13.5, 'bold' => true, 'rtl' => true, 'color' => 'C00000', 'underline' => 'single'];
-        $fGreenBold = ['name' => 'Arial', 'size' => 12.5, 'bold' => true, 'rtl' => true, 'color' => '008000'];
+        $fGreenBold = ['name' => 'Arial', 'size' => 12.5, 'bold' => true, 'rtl' => true, 'color' => 'C00000'];
 
         // Table Styles (9638 twips = exact printable width of A4 portrait with 1134 twips margins)
         $headerTableStyle = [
@@ -375,8 +375,8 @@ class InspectionReportWordGenerator
         // Signature Stamp at bottom of Page 6
         if (file_exists($this->stampPath)) {
             $section->addImage($this->stampPath, [
-                'width' => 120,
-                'height' => 75,
+                'width' => 200,
+                'height' => 125,
                 'alignment' => Jc::START,
                 'wrappingStyle' => 'inline',
             ]);
@@ -563,11 +563,7 @@ class InspectionReportWordGenerator
             }
         }
 
-        $section->addText(
-            "وبناءً على التقييم الفني، بلغت نسبة الإنجاز التقديرية للعقار {$totalPct}%، مما يعني أن العقار يعتبر صالحاً للاستخدام بعد استكمال الأعمال المتبقية وتنفيذ التوصيات الفنية الواردة في التقرير، وذلك لضمان أعلى مستويات الجودة والسلامة والجاهزية التشغيلية.",
-            ['bold' => true, 'size' => 12, 'rtl' => true],
-            array_merge($rtlRight, ['spaceAfter' => 80])
-        );
+        // Removed: "نسبة الإنجاز التقديرية" paragraph (user writes it manually in general notes)
 
         $generalNotes = trim((string) ($house->final_general_notes ?? ''));
         if ($generalNotes !== '') {
@@ -578,7 +574,7 @@ class InspectionReportWordGenerator
                     if (mb_substr($line, 0, 1) !== '•' && mb_substr($line, 0, 1) !== '-') {
                         $line = '• '.$line;
                     }
-                    $section->addText($line, ['size' => 11.5, 'underline' => 'single', 'rtl' => true], array_merge($rtlRight, ['spaceAfter' => 40]));
+                    $section->addText($line, ['size' => 11.5, 'rtl' => true], array_merge($rtlRight, ['spaceAfter' => 40]));
                 }
             }
         }
@@ -597,8 +593,8 @@ class InspectionReportWordGenerator
         // Stamp Image
         if (file_exists($this->stampPath)) {
             $section->addImage($this->stampPath, [
-                'width' => 130,
-                'height' => 80,
+                'width' => 200,
+                'height' => 125,
                 'alignment' => Jc::START,
                 'wrappingStyle' => 'inline',
             ]);

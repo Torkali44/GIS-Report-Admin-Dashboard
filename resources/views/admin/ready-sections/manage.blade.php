@@ -13,8 +13,12 @@
         <form method="post" action="{{ route('admin.ready-sections.store') }}" class="flex flex-wrap items-end gap-4">
             @csrf
             <div class="flex-1 min-w-[200px]">
-                <label class="block text-sm font-medium text-slate-300 mb-1">اسم القسم</label>
+                <label class="block text-sm font-medium text-slate-300 mb-1">اسم القسم (عربي)</label>
                 <input name="name" type="text" required class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2.5 text-white focus:border-emerald-500 focus:outline-none" placeholder="مثال: الجدران">
+            </div>
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-sm font-medium text-sky-300 mb-1">Section name (EN)</label>
+                <input name="name_en" type="text" class="w-full rounded-xl border border-sky-800/50 bg-slate-950 px-4 py-2.5 text-white focus:border-sky-500 focus:outline-none" placeholder="e.g. Walls">
             </div>
             <div class="flex-1 min-w-[220px]">
                 <label class="block text-sm font-medium text-slate-300 mb-1">تصنيف الملاحظات (اختياري)</label>
@@ -38,6 +42,9 @@
                             <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-sm font-bold text-slate-300">{{ $section->sort_order }}</span>
                             <div class="min-w-0">
                                 <p data-ready-field="name" class="text-lg font-bold text-white">{{ $section->name }}</p>
+                                @if($section->name_en)
+                                    <p class="text-sm text-sky-400/90">{{ $section->name_en }}</p>
+                                @endif
                                 @if($section->noteCategory)
                                     <p data-ready-field="category" class="text-xs text-emerald-500/80 mt-0.5">مرتبط بتصنيف: {{ $section->noteCategory->name }}</p>
                                 @else
@@ -59,8 +66,12 @@
                     @csrf
                     @method('PATCH')
                     <div class="flex-1 min-w-[180px]">
-                        <label class="block text-xs text-slate-500 mb-1">اسم القسم</label>
+                        <label class="block text-xs text-slate-500 mb-1">اسم القسم (عربي)</label>
                         <input name="name" value="{{ $section->name }}" required class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+                    <div class="flex-1 min-w-[180px]">
+                        <label class="block text-xs text-sky-400 mb-1">Section name (EN)</label>
+                        <input name="name_en" value="{{ $section->name_en }}" class="w-full rounded-lg border border-sky-800/50 bg-slate-950 px-3 py-2 text-sm text-white focus:border-sky-500 focus:outline-none">
                     </div>
                     <div class="flex-1 min-w-[200px]">
                         <label class="block text-xs text-slate-500 mb-1">تصنيف الملاحظات</label>

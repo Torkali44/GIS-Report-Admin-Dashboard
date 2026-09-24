@@ -78,6 +78,48 @@
         </div>
 
         <div class="space-y-6">
+            <h2 class="text-xl font-semibold text-sky-300 border-b border-slate-800 pb-2">Property details (English) — optional</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="activity_en" class="mb-1 block text-sm font-medium text-sky-300">Activity (EN)</label>
+                    <input id="activity_en" name="activity_en" type="text" value="{{ old('activity_en') }}" class="w-full rounded-lg border border-sky-800/50 bg-slate-950 px-3 py-2 text-white focus:border-sky-500 focus:outline-none" placeholder="Residential">
+                </div>
+                <div>
+                    <label for="property_type_en" class="mb-1 block text-sm font-medium text-sky-300">Property type (EN)</label>
+                    <input id="property_type_en" name="property_type_en" type="text" value="{{ old('property_type_en') }}" class="w-full rounded-lg border border-sky-800/50 bg-slate-950 px-3 py-2 text-white focus:border-sky-500 focus:outline-none" placeholder="Villa">
+                </div>
+                <div>
+                    <label for="building_status_en" class="mb-1 block text-sm font-medium text-sky-300">Building status (EN)</label>
+                    <input id="building_status_en" name="building_status_en" type="text" value="{{ old('building_status_en') }}" class="w-full rounded-lg border border-sky-800/50 bg-slate-950 px-3 py-2 text-white focus:border-sky-500 focus:outline-none" placeholder="Finished (unfurnished)">
+                </div>
+                <div>
+                    <label for="compound_en" class="mb-1 block text-sm font-medium text-sky-300">Compound (EN)</label>
+                    <input id="compound_en" name="compound_en" type="text" value="{{ old('compound_en') }}" class="w-full rounded-lg border border-sky-800/50 bg-slate-950 px-3 py-2 text-white focus:border-sky-500 focus:outline-none">
+                </div>
+                <div>
+                    <label for="area_en" class="mb-1 block text-sm font-medium text-sky-300">Area (EN)</label>
+                    <input id="area_en" name="area_en" type="text" value="{{ old('area_en') }}" class="w-full rounded-lg border border-sky-800/50 bg-slate-950 px-3 py-2 text-white focus:border-sky-500 focus:outline-none">
+                </div>
+                <div>
+                    <label for="buyer_name_en" class="mb-1 block text-sm font-medium text-sky-300">Buyer (EN)</label>
+                    <input id="buyer_name_en" name="buyer_name_en" type="text" value="{{ old('buyer_name_en') }}" class="w-full rounded-lg border border-sky-800/50 bg-slate-950 px-3 py-2 text-white focus:border-sky-500 focus:outline-none">
+                </div>
+                <div>
+                    <label for="developer_name_en" class="mb-1 block text-sm font-medium text-sky-300">Developer (EN)</label>
+                    <input id="developer_name_en" name="developer_name_en" type="text" value="{{ old('developer_name_en') }}" class="w-full rounded-lg border border-sky-800/50 bg-slate-950 px-3 py-2 text-white focus:border-sky-500 focus:outline-none">
+                </div>
+                <div>
+                    <label for="engineering_supervisor_en" class="mb-1 block text-sm font-medium text-sky-300">Engineering supervisor (EN)</label>
+                    <input id="engineering_supervisor_en" name="engineering_supervisor_en" type="text" value="{{ old('engineering_supervisor_en') }}" class="w-full rounded-lg border border-sky-800/50 bg-slate-950 px-3 py-2 text-white focus:border-sky-500 focus:outline-none">
+                </div>
+                <div>
+                    <label for="main_contractor_en" class="mb-1 block text-sm font-medium text-sky-300">Main contractor (EN)</label>
+                    <input id="main_contractor_en" name="main_contractor_en" type="text" value="{{ old('main_contractor_en') }}" class="w-full rounded-lg border border-sky-800/50 bg-slate-950 px-3 py-2 text-white focus:border-sky-500 focus:outline-none">
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
             <h2 class="text-xl font-semibold text-emerald-400 border-b border-slate-800 pb-2">بيانات التقرير</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>

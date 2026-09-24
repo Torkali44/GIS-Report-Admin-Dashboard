@@ -21,4 +21,38 @@ final class InspectionScoreLabels
 
         return 'ضعيف';
     }
+
+    public static function labelEn(int $score): string
+    {
+        $score = min(100, max(0, $score));
+
+        if ($score >= 80) {
+            return 'Excellent';
+        }
+        if ($score >= 70) {
+            return 'Good';
+        }
+        if ($score >= 60) {
+            return 'Average';
+        }
+
+        return 'Poor';
+    }
+
+    /** Map Arabic inspector override to English for EN reports. */
+    public static function translateRating(?string $rating): ?string
+    {
+        if ($rating === null || trim($rating) === '') {
+            return null;
+        }
+
+        return match (trim($rating)) {
+            'ممتاز' => 'Excellent',
+            'جيد جداً', 'جيد جدا' => 'Very Good',
+            'جيد' => 'Good',
+            'متوسط' => 'Average',
+            'ضعيف' => 'Poor',
+            default => $rating,
+        };
+    }
 }

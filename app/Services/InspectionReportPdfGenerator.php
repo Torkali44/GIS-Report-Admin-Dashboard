@@ -97,8 +97,8 @@ class InspectionReportPdfGenerator
             if ($signaturePath) {
                 $pageW = $pdf->getPageWidth();
                 $pageH = $pdf->getPageHeight();
-                $sigW = 38;
-                $sigH = 24;
+                $sigW = 65;
+                $sigH = 42;
                 $sigX = $pageW - $sigW - 16; // Bottom-right
                 $sigY = $pdf->GetY() + 6;
 
@@ -269,7 +269,7 @@ class InspectionReportPdfGenerator
                 '',
                 '<div style="font-size:11.5px; line-height: 1.5; font-family: arialbd;">' . $html . '</div>',
                 0,
-                1,
+                0,
                 false,
                 true,
                 'R',
@@ -315,11 +315,11 @@ HTML,
 
     <h2 style="font-family:arialbd; color:#c00000; font-size:13pt; text-decoration:underline; margin-top:6px; margin-bottom:4px;">ضمانات GIS:</h2>
     <p style="font-size:11.5pt; margin-top:0px; margin-bottom:2px;">• <strong>ضمان الإحاطة:</strong> يشمل شمولية ودقة البيانات وفق معايير الشركة.</p>
-    <p style="font-size:11.5pt; color:#008000; font-weight:bold; margin-top:0px; margin-bottom:0px;"><span style="color:#008000; font-weight:bold; font-size:12.5pt;">*</span> شرح ضمان الإحاطة</p>
+    <p style="font-size:11.5pt; color:#c00000; font-weight:bold; margin-top:0px; margin-bottom:0px;"><span style="color:#c00000; font-weight:bold; font-size:12.5pt;">*</span> شرح ضمان الإحاطة</p>
     <p style="font-size:11pt; color:#222; margin-top:0px; margin-bottom:8px; line-height:1.55;">تقديم تقرير شامل قدر الإمكان عن حالة العقار الظاهرة، بناءً على المعايير الفنية المتبعة داخل الشركة. لا يُعد هذا ضمانًا قانونيًا أو فنيًا لحالة العقار المستقبلية أو للعيوب المخفية.</p>
 
     <p style="font-size:11.5pt; margin-top:0px; margin-bottom:2px;">• <strong>ضمان السلامة:</strong> التأكد من خلو البنود المفحوصة من العيوب الخطرة، والرجوع لشهادات الضمان إن وجدت.</p>
-    <p style="font-size:11.5pt; color:#008000; font-weight:bold; margin-top:0px; margin-bottom:0px;"><span style="color:#008000; font-weight:bold; font-size:12.5pt;">*</span> شرح ضمان السلامة</p>
+    <p style="font-size:11.5pt; color:#c00000; font-weight:bold; margin-top:0px; margin-bottom:0px;"><span style="color:#c00000; font-weight:bold; font-size:12.5pt;">*</span> شرح ضمان السلامة</p>
     <p style="font-size:11pt; color:#222; margin-top:0px; margin-bottom:8px; line-height:1.55;">يُقصد به التأكد من عدم وجود عيوب خطرة في العناصر المفحوصة وقت الفحص، وفق المشاهدات الظاهرة. في حال توفر شهادات ضمان للعناصر مثل الكهرباء أو السباكة أو التكييف، يتم الرجوع إليها دون أن تتحمل الشركة مسؤولية صلاحيتها.</p>
 
     <h2 style="font-family:arialbd; color:#c00000; font-size:13pt; text-decoration:underline; margin-top:8px; margin-bottom:4px;">امتيازاتنا:</h2>
@@ -831,6 +831,8 @@ HTML,
             foreach ($lines as $line) {
                 $trimmed = trim($line);
                 if ($trimmed !== '') {
+                    $trimmed = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', $trimmed);
+                    $trimmed = trim(preg_replace('/\s{2,}/u', ' ', $trimmed) ?? $trimmed);
                     $cleanParagraphs[] = e($trimmed);
                 }
             }
@@ -854,23 +856,7 @@ HTML,
             $pdf->SetTextColor(0, 0, 0);
         }
 
-        $pdf->Ln(2);
-        $pdf->writeHTMLCell(
-            0,
-            0,
-            '',
-            '',
-            '<div dir="rtl" style="font-size:10.5pt;text-align:justify;line-height:1.35;">'
-            . 'وبناءً على التقييم الفني، بلغت نسبة الإنجاز التقديرية للعقار '
-            . '<b>' . $totalPct . '%</b>'
-            . '، مما يعني أن العقار يعتبر صالحاً للاستخدام بعد استكمال الأعمال المتبقية وتنفيذ التوصيات الفنية الواردة في التقرير، وذلك لضمان أعلى مستويات الجودة والسلامة والجاهزية التشغيلية.'
-            . '</div>',
-            0,
-            1,
-            false,
-            true,
-            'R',
-        );
+        // Removed: "نسبة الإنجاز التقديرية" paragraph (user writes it manually in general notes)
 
         $generalNotes = trim((string) ($house->final_general_notes ?? ''));
         if ($generalNotes !== '') {
@@ -887,10 +873,16 @@ HTML,
                 if ($line === '') {
                     continue;
                 }
+                // Strip emoji — TCPDF/Arial cannot render them (avoid empty boxes)
+                $line = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', $line);
+                $line = trim(preg_replace('/\s{2,}/u', ' ', $line) ?? $line);
+                if ($line === '') {
+                    continue;
+                }
                 if (mb_substr($line, 0, 1) !== '•' && mb_substr($line, 0, 1) !== '-') {
                     $line = '• ' . $line;
                 }
-                $notesLines[] = '<u>' . e($line) . '</u>';
+                $notesLines[] = e($line);
             }
             $notesHtml = implode('<br/>', $notesLines);
             $pdf->writeHTMLCell(
@@ -898,7 +890,7 @@ HTML,
                 0,
                 '',
                 '',
-                '<div dir="rtl" style="font-size:10.5pt; text-align:right; line-height:1.35;">' . $notesHtml . '</div>',
+                '<div dir="rtl" style="font-size:10.5pt; text-align:right; line-height:1.35; text-decoration:none;">' . $notesHtml . '</div>',
                 0,
                 1,
                 false,
@@ -967,8 +959,8 @@ HTML,
         if ($signaturePath) {
             $pageW = $pdf->getPageWidth();
             $pageH = $pdf->getPageHeight();
-            $sigW = 36;
-            $sigH = 22;
+            $sigW = 65;
+            $sigH = 42;
             $sigX = $pageW - $sigW - 16; // Bottom-right
             $sigY = $pdf->GetY() + 4;
 

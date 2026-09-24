@@ -27,6 +27,7 @@ class ReadySectionsController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'name_en' => ['nullable', 'string', 'max:255'],
             'note_category_id' => ['nullable', 'exists:note_categories,id'],
         ]);
 
@@ -44,11 +45,13 @@ class ReadySectionsController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'name_en' => ['nullable', 'string', 'max:255'],
             'note_category_id' => ['nullable', 'exists:note_categories,id'],
         ]);
 
         $section->update([
             'name' => $data['name'],
+            'name_en' => $data['name_en'] ?? null,
             'note_category_id' => $data['note_category_id'] ?? null,
         ]);
 

@@ -117,6 +117,7 @@ class ReadyNotesController extends Controller
         $data = $request->validate([
             'note_category_id' => ['required', 'exists:note_categories,id'],
             'text' => ['required', 'string', 'max:2000'],
+            'text_en' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $max = (int) ReadyNote::where('note_category_id', $data['note_category_id'])->max('sort_order');
@@ -132,6 +133,7 @@ class ReadyNotesController extends Controller
     {
         $data = $request->validate([
             'text' => ['required', 'string', 'max:2000'],
+            'text_en' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $note->update($data);
@@ -140,6 +142,7 @@ class ReadyNotesController extends Controller
             return response()->json([
                 'message' => 'تم تحديث الملاحظة.',
                 'text' => $note->text,
+                'text_en' => $note->text_en,
                 'id' => $note->id,
             ]);
         }
@@ -162,6 +165,7 @@ class ReadyNotesController extends Controller
         $data = $request->validate([
             'note_category_id' => ['required', 'exists:note_categories,id'],
             'text' => ['required', 'string', 'max:2000'],
+            'text_en' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $max = (int) RecommendationTemplate::where('note_category_id', $data['note_category_id'])->max('sort_order');
@@ -177,6 +181,7 @@ class ReadyNotesController extends Controller
     {
         $data = $request->validate([
             'text' => ['required', 'string', 'max:2000'],
+            'text_en' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $recommendation->update($data);
@@ -185,6 +190,7 @@ class ReadyNotesController extends Controller
             return response()->json([
                 'message' => 'تم تحديث التوصية.',
                 'text' => $recommendation->text,
+                'text_en' => $recommendation->text_en,
                 'id' => $recommendation->id,
             ]);
         }

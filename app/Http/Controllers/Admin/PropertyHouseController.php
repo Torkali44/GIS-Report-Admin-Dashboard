@@ -7,7 +7,9 @@ use App\Models\NoteCategory;
 use App\Models\PropertyHouse;
 use App\Models\ReadySection;
 use App\Services\InspectionReportPdfGenerator;
+use App\Services\InspectionReportPdfGeneratorEn;
 use App\Services\InspectionReportWordGenerator;
+use App\Services\InspectionReportWordGeneratorEn;
 use App\Support\ReportCache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -57,19 +59,28 @@ class PropertyHouseController extends Controller
             'inspection_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:8000'],
             'activity' => ['nullable', 'string', 'max:255'],
+            'activity_en' => ['nullable', 'string', 'max:255'],
             'property_type' => ['nullable', 'string', 'max:255'],
+            'property_type_en' => ['nullable', 'string', 'max:255'],
             'building_status' => ['nullable', 'string', 'max:255'],
+            'building_status_en' => ['nullable', 'string', 'max:255'],
             'document_number' => ['nullable', 'string', 'max:255'],
             'intro_number' => ['nullable', 'string', 'max:255'],
             'villa_number' => ['nullable', 'string', 'max:255'],
             'road' => ['nullable', 'string', 'max:255'],
             'compound' => ['nullable', 'string', 'max:255'],
+            'compound_en' => ['nullable', 'string', 'max:255'],
             'area' => ['nullable', 'string', 'max:255'],
+            'area_en' => ['nullable', 'string', 'max:255'],
             'buyer_name' => ['nullable', 'string', 'max:255'],
+            'buyer_name_en' => ['nullable', 'string', 'max:255'],
             'id_number' => ['nullable', 'string', 'max:255'],
             'developer_name' => ['nullable', 'string', 'max:255'],
+            'developer_name_en' => ['nullable', 'string', 'max:255'],
             'engineering_supervisor' => ['nullable', 'string', 'max:255'],
+            'engineering_supervisor_en' => ['nullable', 'string', 'max:255'],
             'main_contractor' => ['nullable', 'string', 'max:255'],
+            'main_contractor_en' => ['nullable', 'string', 'max:255'],
             'property_age' => ['nullable', 'string', 'max:255'],
             'land_area' => ['nullable', 'string', 'max:255'],
             'building_area' => ['nullable', 'string', 'max:255'],
@@ -81,7 +92,9 @@ class PropertyHouseController extends Controller
             'kitchens_count' => ['nullable', 'string', 'max:255'],
             'total_percentage' => ['nullable', 'integer', 'min:0', 'max:100'],
             'final_result_text' => ['nullable', 'string', 'max:20000'],
+            'final_result_text_en' => ['nullable', 'string', 'max:20000'],
             'final_general_notes' => ['nullable', 'string', 'max:8000'],
+            'final_general_notes_en' => ['nullable', 'string', 'max:8000'],
             'report_delivered_at' => ['nullable', 'date'],
         ]);
 
@@ -110,19 +123,28 @@ class PropertyHouseController extends Controller
             'inspection_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:8000'],
             'activity' => ['nullable', 'string', 'max:255'],
+            'activity_en' => ['nullable', 'string', 'max:255'],
             'property_type' => ['nullable', 'string', 'max:255'],
+            'property_type_en' => ['nullable', 'string', 'max:255'],
             'building_status' => ['nullable', 'string', 'max:255'],
+            'building_status_en' => ['nullable', 'string', 'max:255'],
             'document_number' => ['nullable', 'string', 'max:255'],
             'intro_number' => ['nullable', 'string', 'max:255'],
             'villa_number' => ['nullable', 'string', 'max:255'],
             'road' => ['nullable', 'string', 'max:255'],
             'compound' => ['nullable', 'string', 'max:255'],
+            'compound_en' => ['nullable', 'string', 'max:255'],
             'area' => ['nullable', 'string', 'max:255'],
+            'area_en' => ['nullable', 'string', 'max:255'],
             'buyer_name' => ['nullable', 'string', 'max:255'],
+            'buyer_name_en' => ['nullable', 'string', 'max:255'],
             'id_number' => ['nullable', 'string', 'max:255'],
             'developer_name' => ['nullable', 'string', 'max:255'],
+            'developer_name_en' => ['nullable', 'string', 'max:255'],
             'engineering_supervisor' => ['nullable', 'string', 'max:255'],
+            'engineering_supervisor_en' => ['nullable', 'string', 'max:255'],
             'main_contractor' => ['nullable', 'string', 'max:255'],
+            'main_contractor_en' => ['nullable', 'string', 'max:255'],
             'property_age' => ['nullable', 'string', 'max:255'],
             'land_area' => ['nullable', 'string', 'max:255'],
             'building_area' => ['nullable', 'string', 'max:255'],
@@ -134,7 +156,9 @@ class PropertyHouseController extends Controller
             'kitchens_count' => ['nullable', 'string', 'max:255'],
             'total_percentage' => ['nullable', 'integer', 'min:0', 'max:100'],
             'final_result_text' => ['nullable', 'string', 'max:20000'],
+            'final_result_text_en' => ['nullable', 'string', 'max:20000'],
             'final_general_notes' => ['nullable', 'string', 'max:8000'],
+            'final_general_notes_en' => ['nullable', 'string', 'max:8000'],
             'report_delivered_at' => ['nullable', 'date'],
         ]);
 
@@ -150,7 +174,9 @@ class PropertyHouseController extends Controller
     {
         $data = $request->validate([
             'final_result_text' => ['nullable', 'string', 'max:20000'],
+            'final_result_text_en' => ['nullable', 'string', 'max:20000'],
             'final_general_notes' => ['nullable', 'string', 'max:8000'],
+            'final_general_notes_en' => ['nullable', 'string', 'max:8000'],
             'report_delivered_at' => ['nullable', 'date'],
             'inspector_rating_override' => ['nullable', 'string', 'in:ممتاز,جيد جداً,جيد,متوسط,ضعيف,'],
         ]);
@@ -230,6 +256,37 @@ class PropertyHouseController extends Controller
     public function reportWord(PropertyHouse $house, InspectionReportWordGenerator $generator): Response
     {
         $filename = 'inspection-'.$house->id.'.docx';
+        $binary = $generator->renderBinary($house);
+
+        return response($binary, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Content-Length' => (string) strlen($binary),
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
+    public function reportEn(Request $request, PropertyHouse $house, InspectionReportPdfGeneratorEn $generator): Response
+    {
+        $filename = 'inspection-'.$house->id.'-en.pdf';
+
+        ReportCache::clear($house);
+        $binary = $generator->renderBinary($house);
+
+        $disposition = $request->query('inline') ? 'inline' : 'attachment';
+
+        return response($binary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => $disposition.'; filename="'.$filename.'"',
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
+    public function reportWordEn(PropertyHouse $house, InspectionReportWordGeneratorEn $generator): Response
+    {
+        $filename = 'inspection-'.$house->id.'-en.docx';
         $binary = $generator->renderBinary($house);
 
         return response($binary, 200, [
