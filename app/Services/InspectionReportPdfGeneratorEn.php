@@ -187,6 +187,8 @@ class InspectionReportPdfGeneratorEn
             }
         }
 
+        $this->overlayCoverLogo($pdf, $pageW, $coverTopPad);
+
         $reportNo = $house->reference_code ?: ('H-' . $house->id);
         $reportDate = $house->reportInspectionDateFormatted();
 
@@ -242,7 +244,8 @@ class InspectionReportPdfGeneratorEn
     private function renderFixedPages(TCPDF $pdf): void
     {
         $pdf->setRTL(false);
-        $pdf->setCellHeightRatio(1.5);
+        $pdf->SetAutoPageBreak(false, 0);
+        $pdf->setCellHeightRatio(1.55);
 
         foreach ($this->getFixedPagesContent() as $html) {
             $pdf->AddPage();
@@ -254,7 +257,7 @@ class InspectionReportPdfGeneratorEn
                 0,
                 '',
                 '',
-                '<div style="font-size:11.5px; line-height: 1.5; font-family: arialbd;">' . $html . '</div>',
+                '<div style="font-size:11.5px; line-height: 1.55; font-family: arialbd;">' . $html . '</div>',
                 0,
                 0,
                 false,
@@ -264,6 +267,7 @@ class InspectionReportPdfGeneratorEn
             );
         }
 
+        $pdf->SetAutoPageBreak(true, 24);
         $pdf->setCellHeightRatio(1.6);
     }
 
@@ -939,15 +943,56 @@ class InspectionReportPdfGeneratorEn
 
     private function resolveLogoPath(): ?string
     {
-        $candidates = [env('REPORT_LOGO_PATH'), 'images/logo.png', 'images/company-logo.png'];
+        $candidates = [
+            'images/newLog.jpeg',
+            'images/newLog.jpg',
+            env('REPORT_LOGO_PATH'),
+            'images/logo.png',
+            'images/company-logo.png',
+        ];
         foreach ($candidates as $candidate) {
-            if (!$candidate)
+            if (!$candidate) {
                 continue;
+            }
             $path = public_path($candidate);
-            if (is_file($path))
+            if (is_file($path)) {
                 return $path;
+            }
         }
+
         return null;
+    }
+
+    private function overlayCoverLogo(TCPDF $pdf, float $pageW, float $coverTopPad): void
+    {
+        $logoPath = $this->resolveLogoPath();
+        if (!$logoPath || !is_readable($logoPath)) {
+            return;
+        }
+
+        try {
+            $bandH = 78;
+            $pdf->SetFillColor(255, 255, 255);
+            $pdf->Rect(0, 0, $pageW, $coverTopPad + $bandH, 'F');
+
+            $logoW = 32;
+            $logoH = $logoW * (1474 / 1067);
+            $logoX = ($pageW - $logoW) / 2;
+            $logoY = 4 + $coverTopPad;
+
+            $pdf->Image($logoPath, $logoX, $logoY, $logoW, $logoH, '', '', '', false, 300);
+
+            $pdf->SetTextColor(128, 0, 0);
+            $pdf->SetFont($this->fontBold, '', 9);
+            $yText = $logoY + $logoH + 1;
+            $pdf->SetXY(0, $yText);
+            $pdf->Cell($pageW, 4.5, 'GIS VALUATION AND EVALUATION', 0, 1, 'C');
+            $pdf->SetFont($this->fontBold, '', 10);
+            $pdf->SetX(0);
+            $pdf->Cell($pageW, 5, 'جي إي إس للتقييم والتثمين العقاري', 0, 1, 'C');
+            $pdf->SetTextColor(0, 0, 0);
+        } catch (Throwable $e) {
+        }
     }
 
     /**
@@ -1121,7 +1166,7 @@ class ReportTCPDFEn extends TCPDF
             // Small logo on the top-left
             if ($this->logoPath && is_readable($this->logoPath)) {
                 try {
-                    $this->Image($this->logoPath, 14, 8, 30, 20, '', '', '', false, 300);
+                    $this->Image($this->logoPath, 14, 5, 16, 0, '', '', '', false, 300);
                 } catch (Throwable $e) {
                 }
             }

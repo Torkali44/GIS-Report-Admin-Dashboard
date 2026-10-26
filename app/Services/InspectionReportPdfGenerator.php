@@ -187,6 +187,9 @@ class InspectionReportPdfGenerator
             }
         }
 
+        // Cover artwork still has the old logo baked in — mask it and draw the new logo.
+        $this->overlayCoverLogo($pdf, $pageW, $coverTopPad);
+
         $reportNo = $house->reference_code ?: ('H-' . $house->id);
         $reportDate = $house->reportInspectionDateFormatted();
 
@@ -257,7 +260,9 @@ class InspectionReportPdfGenerator
 
     private function renderFixedPages(TCPDF $pdf): void
     {
-        $pdf->setCellHeightRatio(1.5);
+        // Keep each intro block on its own page — no spill into the next section.
+        $pdf->SetAutoPageBreak(false, 0);
+        $pdf->setCellHeightRatio(1.55);
 
         foreach ($this->getFixedPagesContent() as $html) {
             $pdf->AddPage();
@@ -267,7 +272,7 @@ class InspectionReportPdfGenerator
                 0,
                 '',
                 '',
-                '<div style="font-size:11.5px; line-height: 1.5; font-family: arialbd;">' . $html . '</div>',
+                '<div style="font-size:11.5px; line-height: 1.55; font-family: arialbd;">' . $html . '</div>',
                 0,
                 0,
                 false,
@@ -277,56 +282,57 @@ class InspectionReportPdfGenerator
             );
         }
 
+        $pdf->SetAutoPageBreak(true, 24);
         $pdf->setCellHeightRatio(1.6);
     }
 
     private function getFixedPagesContent(): array
     {
+        // Report page 2: who we are + all 10 services with comfortable spacing.
+        // Report page 3: «ما يميزنا» only.
         return [
             <<<'HTML'
 <div style="text-align:right; font-family: arialbd;">
-    <h1 style="font-family:arialbd; color:#c00000; font-size:16pt; text-align:center; margin-bottom:4px;">شركة GIS لفحص تقييم المباني</h1>
-    <h2 style="font-family:arialbd; color:#c00000; font-size:13.5pt; text-decoration:underline; text-align:center; margin-bottom:10px;">نبذة تعريفية – مقدمة الشركة وخدماتها</h2>
+    <h1 style="font-family:arialbd; color:#c00000; font-size:15.5pt; text-align:center; margin-bottom:4px;">شركة GIS لفحص لتقييم المباني</h1>
+    <h2 style="font-family:arialbd; color:#c00000; font-size:13pt; text-decoration:underline; text-align:center; margin-bottom:10px;">نبذة تعريفية – مقدمة الشركة وخدماتها</h2>
 
-    <p style="font-size:13pt; font-family:arialbd; font-weight:bold; color:#000; margin-bottom:4px;">من نحن ؟</p>
-    <p style="font-size:11.5pt; color:#222; margin-top:0px; margin-bottom:8px; line-height:1.6;">نحن في شركة <strong>GIS</strong> نؤمن بأن سلامة العقار تبدأ من القرار الصحيح، ولهذا نقدم خدمة فحص شاملة للمباني الجاهزة قبل الشراء أو السكن، وذلك للتأكد من خلوها من العيوب الفنية الظاهرة أو المخاطر الخفية.</p>
-    <p style="font-size:11.5pt; color:#222; margin-top:0px; margin-bottom:8px; line-height:1.6;">نعمل من خلال خبراء مختصين، ونعتمد على أجهزة وتقنيات حديثة لضمان تقديم تقارير دقيقة وموثوقة تساعد العميل على اتخاذ قرار استثماري أو سكني آمن.</p>
-    <p style="font-size:11.5pt; color:#222; margin-top:0px; margin-bottom:10px; line-height:1.6;">نعد من أوائل الشركات المتخصصة في فحص العقارات في البحرين، ونفتخر بسجل حافل من الإنجازات وخدمة مئات العملاء من الأفراد والشركات والمطورين.</p>
+    <p style="font-size:12.5pt; font-family:arialbd; font-weight:bold; color:#000; margin-bottom:4px;">من نحن ؟</p>
+    <p style="font-size:10.5pt; color:#222; margin-top:0px; margin-bottom:7px; line-height:1.55;">نحن في شركة <strong>GIS</strong> نؤمن بأن سلامة العقار تبدأ من القرار الصحيح، ولهذا نقدم خدمة فحص شاملة للمباني الجاهزة قبل الشراء أو السكن، وذلك لرصد الملاحظات والعيوب الظاهرة وقت المعاينة، بالاستعانة بأجهزة الفحص والاختبارات الأولية ضمن نطاق الخدمة المتفق عليه.</p>
+    <p style="font-size:10.5pt; color:#222; margin-top:0px; margin-bottom:7px; line-height:1.55;">نعمل من خلال فريق فني مختص، ونستعين بأجهزة الفحص المناسبة لتوثيق المشاهدات ونتائج الاختبارات المنفذة، وإعداد تقرير يوضح حالة العناصر المفحوصة والملاحظات والتوصيات، بما يساعد العميل على اتخاذ قرار الشراء أو السكن على أساس معلومات أوضح.</p>
+    <p style="font-size:10.5pt; color:#222; margin-top:0px; margin-bottom:10px; line-height:1.55;">نعد من أوائل الشركات المتخصصة في فحص العقارات في البحرين، ونفتخر بسجل حافل من الإنجازات وخدمة مئات العملاء من الأفراد والشركات والمطورين.</p>
 
-    <h2 style="font-family:arialbd; color:#c00000; font-size:13.5pt; text-decoration:underline; margin-bottom:4px; margin-top:6px;">خدماتنا الرئيسية</h2>
-    <p style="font-size:12pt; font-family:arialbd; font-weight:bold; color:#c00000; margin-top:0px; margin-bottom:6px;">تقدم شركة GIS خدمات فحص المباني الجاهزة عبر تقييم شامل للأنظمة التالية:</p>
-    <table cellpadding="3.5">
-        <tr><td style="font-size:11.5pt; line-height:16px"><strong>1- الكهرباء:</strong> فحص جودة وسلامة الأفياش، المفاتيح، الطبلون، الأحمال، التأريض.</td></tr>
-        <tr><td style="font-size:11.5pt; line-height:16px"><strong>2- السباكة:</strong> فحص جودة المواسير، الصفايات، ضغط المياه، الخزانات، السخانات، ملوحة الماء.</td></tr>
-        <tr><td style="font-size:11.5pt; line-height:16px"><strong>3- الرطوبة والتسريب:</strong> قياس الرطوبة، كشف التسريبات، فحص العزل المائي.</td></tr>
-        <tr><td style="font-size:11.5pt; line-height:16px"><strong>4- الخزانات:</strong> التأكد من سلامتها من التسريب الحراري أو المائي لتفادي التلوث أو تلف الأسقف.</td></tr>
-        <tr><td style="font-size:11.5pt; line-height:16px"><strong>5- الأبواب والنوافذ:</strong> التحقق من جودة الفتح والإغلاق، المفصلات، الإطارات، العزل، الديكورات.</td></tr>
-        <tr><td style="font-size:11.5pt; line-height:16px"><strong>6- الأسقف والجدران:</strong> فحص الشقوق، آثار الرطوبة، جودة التشطيب، الزوايا، العزل الحراري.</td></tr>
-        <tr><td style="font-size:11.5pt; line-height:16px"><strong>7- السيراميك والأرضيات:</strong> فحص الترويب، الاستواء، الثبات، جودة التركيب.</td></tr>
-        <tr><td style="font-size:11.5pt; line-height:16px"><strong>8- أنظمة الحماية والسلامة:</strong> التأكد من جاهزية كاميرات المراقبة، كواشف الدخان، وحساسات الإنذار.</td></tr>
-        <tr><td style="font-size:11.5pt; line-height:16px"><strong>9- التهوية والتكييف:</strong> فحص وحدات التكييف، فتحات الهواء، مراوح الشفط، جودة التأسيس.</td></tr>
-        <tr><td style="font-size:11.5pt; line-height:16px"><strong>10- مواقف السيارات والواجهات:</strong> فحص الأرضية، المظلات، باب الكراج، التشققات، فواصل التمدد.</td></tr>
+    <h2 style="font-family:arialbd; color:#c00000; font-size:13pt; text-decoration:underline; margin-bottom:4px; margin-top:6px;">خدماتنا الرئيسية</h2>
+    <p style="font-size:11pt; font-family:arialbd; font-weight:bold; color:#c00000; margin-top:0px; margin-bottom:6px;">تقدم شركة GIS خدمات فحص المباني الجاهزة عبر تقييم شامل للأنظمة التالية:</p>
+    <table cellpadding="3" cellspacing="0">
+        <tr><td style="font-size:10pt; line-height:14px"><strong>1- الكهرباء:</strong> معاينة المقابس والمفاتيح واللوحات والتوصيلات الظاهرة والمتاحة، وإجراء الاختبارات والقياسات الكهربائية ضمن نطاق الخدمة، مع توثيق النتائج والملاحظات وحدود الفحص في التقرير الكهربائي المرفق.</td></tr>
+        <tr><td style="font-size:10pt; line-height:14px"><strong>2- السباكة:</strong> معاينة التمديدات والتوصيلات والأدوات الصحية الظاهرة والمتاحة، وفحص التصريف والتشغيل ضمن نطاق الخدمة، مع توثيق قياسات ضغط المياه وملوحتها عند إجرائها، وتسجيل أي تسربات أو قصور في الأداء يظهر أثناء الفحص.</td></tr>
+        <tr><td style="font-size:10pt; line-height:14px"><strong>3- الرطوبة والتسريب:</strong> رصد آثار الرطوبة والتسرب الظاهرة، والاستعانة بأجهزة القياس والاختبارات المناسبة ضمن نطاق الفحص، مع توضيح الحالات التي تحتاج إلى فحص إضافي لتحديد مصدر المشكلة.</td></tr>
+        <tr><td style="font-size:10pt; line-height:14px"><strong>4- الخزانات:</strong> معاينة الأجزاء الظاهرة والمتاحة من الخزانات وأغطيتها وتوصيلاتها، ورصد علامات التسرب وملاحظات النظافة الظاهرة، دون إجراء تحليل لجودة المياه.</td></tr>
+        <tr><td style="font-size:10pt; line-height:14px"><strong>5- الأبواب والنوافذ:</strong> فحص الفتح والإغلاق والمقابض والأقفال والمفصلات، ومعاينة الإطارات والزجاج ومواد الإحكام الظاهرة، وتسجيل الملاحظات على التثبيت والتشطيب.</td></tr>
+        <tr><td style="font-size:10pt; line-height:14px"><strong>6- الأسقف والجدران:</strong> معاينة التشققات وآثار الرطوبة وجودة التشطيب في الأجزاء الظاهرة والمتاحة، وتوثيق الملاحظات والقياسات المنفذة، مع بيان الحالات التي تستدعي تقييمًا متخصصًا.</td></tr>
+        <tr><td style="font-size:10pt; line-height:14px"><strong>7- السيراميك والأرضيات:</strong> فحص الترويب، الاستواء، الثبات، جودة التركيب.</td></tr>
+        <tr><td style="font-size:10pt; line-height:14px"><strong>8- أنظمة الحماية والسلامة:</strong> معاينة الأجهزة الموجودة والمتاحة، مثل كاميرات المراقبة وكواشف الدخان وحساسات الإنذار، وتوثيق نتائج الاختبارات التشغيلية التي أُجريت، مع بيان الأجهزة التي تعذّر اختبارها.</td></tr>
+        <tr><td style="font-size:10pt; line-height:14px"><strong>9- التهوية والتكييف:</strong> معاينة وحدات التكييف وفتحات الهواء ومراوح الشفط والتمديدات الظاهرة والمتاحة، وتوثيق نتائج التشغيل والقياسات التي أُجريت، مع بيان الأجزاء التي تعذّر فحصها أو اختبارها.</td></tr>
+        <tr><td style="font-size:10pt; line-height:14px"><strong>10- مواقف السيارات والواجهات:</strong> فحص الأرضية، المظلات، باب الكراج، التشققات، فواصل التمدد.</td></tr>
     </table>
 </div>
 HTML,
             <<<'HTML'
 <div style="text-align:right; font-family: arialbd;">
-    <h1 style="font-family:arialbd; color:#c00000; font-size:15pt; text-decoration:underline; margin-bottom:8px;">ما يميزنا</h1>
+    <h1 style="font-family:arialbd; color:#c00000; font-size:15pt; text-decoration:underline; margin-bottom:8px; margin-top:0px;">ما يميزنا</h1>
 
-    <h2 style="font-family:arialbd; color:#c00000; font-size:13pt; text-decoration:underline; margin-top:6px; margin-bottom:4px;">ضمانات GIS:</h2>
-    <p style="font-size:11.5pt; margin-top:0px; margin-bottom:2px;">• <strong>ضمان الإحاطة:</strong> يشمل شمولية ودقة البيانات وفق معايير الشركة.</p>
-    <p style="font-size:11.5pt; color:#c00000; font-weight:bold; margin-top:0px; margin-bottom:0px;"><span style="color:#c00000; font-weight:bold; font-size:12.5pt;">*</span> شرح ضمان الإحاطة</p>
-    <p style="font-size:11pt; color:#222; margin-top:0px; margin-bottom:8px; line-height:1.55;">تقديم تقرير شامل قدر الإمكان عن حالة العقار الظاهرة، بناءً على المعايير الفنية المتبعة داخل الشركة. لا يُعد هذا ضمانًا قانونيًا أو فنيًا لحالة العقار المستقبلية أو للعيوب المخفية.</p>
+    <h2 style="font-family:arialbd; color:#c00000; font-size:13pt; text-decoration:underline; margin-top:6px; margin-bottom:4px;">منهجية GIS في الفحص والتوثيق</h2>
+    <p style="font-size:11.5pt; margin-top:0px; margin-bottom:2px;">• <strong>توثيق نتائج الفحص:</strong></p>
+    <p style="font-size:11pt; color:#222; margin-top:0px; margin-bottom:8px; line-height:1.55;">نُعد تقريرًا يوثّق الملاحظات على العناصر التي أمكن الوصول إليها وفحصها وقت المعاينة، مدعومًا بالصور والتوصيات المناسبة، مع توضيح حدود الفحص والعناصر التي تعذّر فحصها. ويصف التقرير الحالة الظاهرة ضمن نطاق الخدمة المتفق عليه، ولا يضمن كشف جميع العيوب أو حالة العقار المستقبلية.</p>
 
-    <p style="font-size:11.5pt; margin-top:0px; margin-bottom:2px;">• <strong>ضمان السلامة:</strong> التأكد من خلو البنود المفحوصة من العيوب الخطرة، والرجوع لشهادات الضمان إن وجدت.</p>
-    <p style="font-size:11.5pt; color:#c00000; font-weight:bold; margin-top:0px; margin-bottom:0px;"><span style="color:#c00000; font-weight:bold; font-size:12.5pt;">*</span> شرح ضمان السلامة</p>
-    <p style="font-size:11pt; color:#222; margin-top:0px; margin-bottom:8px; line-height:1.55;">يُقصد به التأكد من عدم وجود عيوب خطرة في العناصر المفحوصة وقت الفحص، وفق المشاهدات الظاهرة. في حال توفر شهادات ضمان للعناصر مثل الكهرباء أو السباكة أو التكييف، يتم الرجوع إليها دون أن تتحمل الشركة مسؤولية صلاحيتها.</p>
+    <p style="font-size:11.5pt; margin-top:0px; margin-bottom:2px;">• <strong>رصد ملاحظات السلامة:</strong></p>
+    <p style="font-size:11pt; color:#222; margin-top:0px; margin-bottom:8px; line-height:1.55;">نرصد ملاحظات السلامة الظاهرة في العناصر التي أمكن فحصها وقت المعاينة، وفق نطاق الخدمة والاختبارات المنفذة، ونوضح ما يستدعي المعالجة أو الفحص المتخصص. ولا يعني عدم تسجيل ملاحظة خلو العنصر من عيوب خفية أو لاحقة.</p>
 
     <h2 style="font-family:arialbd; color:#c00000; font-size:13pt; text-decoration:underline; margin-top:8px; margin-bottom:4px;">امتيازاتنا:</h2>
     <table cellpadding="3.5">
         <tr><td style="font-size:11.5pt; line-height:17px">• سرعة في الاستجابة وإنجاز الفحص.</td></tr>
         <tr><td style="font-size:11.5pt; line-height:17px">• سهولة في تقديم الطلب واستلام التقرير.</td></tr>
-        <tr><td style="font-size:11.5pt; line-height:17px">• توثيق مصور لجميع الملاحظات والعيوب.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:17px">• توثيق الملاحظات المرصودة أثناء الفحص بالصور والوصف الفني، مع تسجيل نتائج الاختبارات والقياسات التي أُجريت.</td></tr>
         <tr><td style="font-size:11.5pt; line-height:17px">• تقارير احترافية سهلة القراءة وغنية بالتفاصيل.</td></tr>
         <tr><td style="font-size:11.5pt; line-height:17px">• أرشفة بيانات كل وحدة عقارية بشكل مستقل ومنظم.</td></tr>
     </table>
@@ -334,57 +340,59 @@ HTML,
     <h2 style="font-family:arialbd; color:#c00000; font-size:13pt; text-decoration:underline; margin-top:8px; margin-bottom:4px;">آلية الفحص والتسليم</h2>
     <table cellpadding="3.5">
         <tr><td style="font-size:11.5pt; line-height:17px">• تستغرق عملية الفحص من ساعتين إلى يومين حسب مساحة العقار وتعقيد أنظمته.</td></tr>
-        <tr><td style="font-size:11.5pt; line-height:17px">• يتم تسليم التقرير النهائي خلال 5 أيام عمل بعد مراجعته من قسم الجودة.</td></tr>
-        <tr><td style="font-size:11.5pt; line-height:17px">• في حال وجود ملاحظات من العميل، يجب إرسالها خلال مدة أقصاها 3 أيام من استلام التقرير لإجراء التعديلات المطلوبة، إن وجدت.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:17px">• يتم تسليم التقرير النهائي خلال خمسة أيام عمل من تاريخ اكتمال الفحص الميداني، بعد استكمال المراجعة الفنية.</td></tr>
+        <tr><td style="font-size:11.5pt; line-height:17px">• يُرجى إرسال أي استفسارات أو ملاحظات على التقرير خلال ثلاثة أيام عمل من استلامه، لمراجعتها وتوضيحها وتصحيح ما يثبت وجوده من أخطاء. وتستند أي تعديلات فنية إلى نتائج الفحص والأدلة المتاحة.</td></tr>
     </table>
 </div>
 HTML,
             <<<'HTML'
 <div style="text-align:right; font-family: arialbd;">
-    <h1 style="font-family:arialbd; color:#c00000; font-size:16pt; text-decoration:underline; margin-bottom:10px;">المستندات الاختيارية التي تُحسن جودة تقرير الفحص العقاري :-</h1>
-    <p style="font-size:12.5pt; color:#222; margin-top:0px; margin-bottom:10px; line-height:1.6;">تساهم المستندات التالية في رفع دقة وجودة التقييم الفني للعقار، ويُفضل إرفاق ما يتوفر منها مع طلب الفحص:</p>
+    <h1 style="font-family:arialbd; color:#c00000; font-size:16pt; text-decoration:underline; margin-bottom:10px;">المستندات الاختيارية التي تُحسّن جودة تقرير الفحص العقاري :-</h1>
+    <p style="font-size:12.5pt; color:#222; margin-top:0px; margin-bottom:10px; line-height:1.6;">تُساهم المستندات التالية في رفع دقة وجودة التقييم الفني للعقار، ويُفضل إرفاق ما يتوفر منها مع طلب الفحص:</p>
 
-    <p style="font-size:13.5pt; font-weight:bold; margin-top:10px; margin-bottom:6px; color:#c00000;">أولاً: مستندات هندسية وفنية</p>
+    <p style="font-size:13.5pt; font-weight:bold; margin-top:10px; margin-bottom:6px; color:#c00000;">أولًا: مستندات هندسية وفنية</p>
     <table cellpadding="5">
         <tr><td style="font-size:12.5pt; line-height:19px">• رخصة البناء</td></tr>
         <tr><td style="font-size:12.5pt; line-height:19px">• المخططات الهندسية المعتمدة (معمارية، إنشائية، ميكانيكية، كهربائية)</td></tr>
-        <tr><td style="font-size:12.5pt; line-height:19px">• شهادة ضمان الهيكل الإنشائي (عادة لمدة 10 سنوات)</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• شهادة ضمان الهيكل الإنشائي، إن وُجدت، مع بيان الجهة المصدرة ومدة الضمان ونطاقه.</td></tr>
         <tr><td style="font-size:12.5pt; line-height:19px">• تقارير فحص التربة</td></tr>
-        <tr><td style="font-size:12.5pt; line-height:19px">• شهادات ضمان المواد والأنظمة مثل: (السباكة، الكهرباء، التكييف، العازل المائي، الألمنيوم والزجاج)</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• شهادات ضمان المواد والأنظمة مثل: ضمان السباكة، ضمان الكهرباء، ضمان أنظمة التكييف، ضمان العازل المائي، ضمان الألمنيوم والزجاج</td></tr>
     </table>
 
-    <p style="font-size:13.5pt; font-weight:bold; margin-top:10px; margin-bottom:6px; color:#c00000;">ثانياً: معلومات عامة وموقع العقار</p>
+    <p style="font-size:13.5pt; font-weight:bold; margin-top:10px; margin-bottom:6px; color:#c00000;">ثانيًا: معلومات عامة وموقع العقار</p>
     <table cellpadding="5">
         <tr><td style="font-size:12.5pt; line-height:19px">• صورة من خرائط العقار المعتمدة من المكتب الهندسي</td></tr>
         <tr><td style="font-size:12.5pt; line-height:19px">• موقع العقار (رابط مباشر أو صورة من خرائط Google أو تطبيق مشابه)</td></tr>
         <tr><td style="font-size:12.5pt; line-height:19px">• شهادة العنوان (تشمل رقم المنزل، اسم الشارع، رقم الطريق، ورقم المجمع)</td></tr>
     </table>
 
-    <p style="font-size:13.5pt; font-weight:bold; margin-top:10px; margin-bottom:6px; color:#c00000;">ثالثاً: مستندات إضافية داعمة لتقييم العقار</p>
+    <p style="font-size:13.5pt; font-weight:bold; margin-top:10px; margin-bottom:6px; color:#c00000;">ثالثًا: مستندات إضافية داعمة لتقييم العقار</p>
     <table cellpadding="5">
         <tr><td style="font-size:12.5pt; line-height:19px">• شهادة ضغط الأرض (إن وُجدت)</td></tr>
         <tr><td style="font-size:12.5pt; line-height:19px">• عمر العقار التقريبي (سنة الإنشاء أو التسليم)</td></tr>
         <tr><td style="font-size:12.5pt; line-height:19px">• صورة البطاقة الذكية للمشتري أو طالب خدمة الفحص</td></tr>
-        <tr><td style="font-size:12.5pt; line-height:19px">• عقد المقاول العام و ضمانات المواد المستخدمة في البناء ( اختياري )</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• عقد المقاول العام (اختياري)</td></tr>
+        <tr><td style="font-size:12.5pt; line-height:19px">• ضمانات المواد المستخدمة في البناء (اختياري)</td></tr>
     </table>
 </div>
 HTML,
             <<<'HTML'
 <div style="text-align:right; font-family: arialbd;">
     <h1 style="font-family:arialbd; color:#c00000; font-size:16pt; text-decoration:underline; margin-bottom:10px;">تنويه هام – حدود المسؤولية</h1>
-    <p style="font-size:12.5pt; color:#222; margin-top:0px; margin-bottom:10px; line-height:1.65;">تلتزم شركة <strong>GIS</strong> بتقديم خدماتها بأقصى درجات الدقة والحيادية، باستخدام أدوات تقنية ومن خلال خبراء مختصين. مع ذلك، لا تتحمل الشركة أي مسؤولية قانونية أو مادية عن الأضرار الناتجة عن عملية الفحص, سواء أثناء المعاينة أو بعدها.</p>
-    <p style="font-size:12.5pt; color:#222; margin-top:0px; margin-bottom:10px; line-height:1.65;">كما لا تتحمل الشركة أي التزامات ناتجة عن نزاعات بين العميل وأطراف أخرى مثل المقاول أو المطور، إذ تقتصر مسؤوليتنا على التشخيص والتوثيق فقط.</p>
+    <p style="font-size:12.5pt; color:#222; margin-top:0px; margin-bottom:8px; line-height:1.65;">تلتزم شركة <strong>GIS</strong> بتقديم خدماتها بأقصى درجات الدقة والحيادية، باستخدام أدوات تقنية ومن خلال خبراء مختصين.</p>
+    <p style="font-size:12.5pt; color:#222; margin-top:0px; margin-bottom:8px; line-height:1.65;">تُنفَّذ أعمال الفحص بعناية مهنية ضمن نطاق الخدمة المتفق عليه، وتُحدَّد مسؤوليات الشركة وفق العقد والقوانين النافذة، ولا يُعد بيان حدود الفحص إعفاءً مطلقًا من المسؤولية.</p>
+    <p style="font-size:12.5pt; color:#222; margin-top:0px; margin-bottom:10px; line-height:1.65;">تقتصر الخدمة على الفحص والتوثيق وإعداد التقرير ضمن النطاق المتفق عليه. ولا تشمل إدارة النزاعات بين العميل والمقاول أو المطور، أو تمثيل أي طرف، أو الإشراف على أعمال الإصلاح، إلا بموجب اتفاق منفصل وفي حدود الاختصاص والتراخيص اللازمة.</p>
 
     <h2 style="font-family:arialbd; color:#c00000; font-size:13.5pt; margin-top:8px; margin-bottom:4px;"><span style="color:#c00000; font-weight:bold; font-size:13.5pt;">*</span> تنويه هام:</h2>
-    <p style="font-size:12pt; color:#222; margin-top:0px; margin-bottom:10px; line-height:1.6;">تقتصر مهمة شركة GIS على فحص وتوثيق الحالة الظاهرة للعقار وقت المعاينة فقط. ولا يُعد التقرير الصادر عنها التزامًا بضمان مستقبلي لحالة العقار أو لأي تطورات قد تطرأ لاحقًا. تنتهي مسؤولية الشركة بشكل كامل فور انتهاء الفحص ومغادرة الفريق للموقع، ما لم يتم الاتفاق المسبق على خدمة متابعة أو فحص إضافي.</p>
+    <p style="font-size:12pt; color:#222; margin-top:0px; margin-bottom:10px; line-height:1.6;">تقتصر مهمة شركة GIS على فحص وتوثيق الحالة الظاهرة للعقار وقت المعاينة فقط. ولا يُعد التقرير الصادر عنها التزامًا بضمان مستقبلي لحالة العقار أو لأي تطورات قد تطرأ لاحقًا. يعكس التقرير حالة العناصر المفحوصة وقت المعاينة، ولا تشمل الخدمة متابعة التغيرات اللاحقة أو التحقق من تنفيذ الإصلاحات، إلا بموجب اتفاق منفصل على المتابعة أو إعادة الفحص.</p>
 
     <h2 style="font-family:arialbd; color:#c00000; font-size:14pt; text-decoration:underline; margin-top:10px; margin-bottom:6px;">الأسئلة الشائعة</h2>
     <table cellpadding="4.5">
-        <tr><td style="font-size:12pt; line-height:18px;"><strong style="font-family:arialbd; color:red; font-size:13pt;">هل يمكن استرداد المبلغ؟</strong><br/> نعم، مع تطبيق رسوم إدارية في حال تم الإلغاء قبل 24 ساعة من موعد الفحص.</td></tr>
-        <tr><td style="font-size:12pt; line-height:18px;"><strong style="font-family:arialbd; color:red; font-size:13pt;">هل يمكن تعديل التقرير؟</strong><br/> نعم، يتم قبول الملاحظات خلال 3 أيام فقط من استلام التقرير.</td></tr>
+        <tr><td style="font-size:12pt; line-height:18px;"><strong style="font-family:arialbd; color:red; font-size:13pt;">هل يمكن استرداد المبلغ؟</strong><br/> تُراجع طلبات الإلغاء واسترداد المبلغ وفق شروط العقد الموقّع، مع توضيح رسوم الإلغاء والمبلغ القابل للاسترداد، إن وُجد.</td></tr>
+        <tr><td style="font-size:12pt; line-height:18px;"><strong style="font-family:arialbd; color:red; font-size:13pt;">هل يمكن تعديل التقرير؟</strong><br/> نعم، تُراجع الملاحظات ويُصحّح ما يثبت وجوده من أخطاء، على أن تستند التعديلات الفنية إلى نتائج الفحص والأدلة المتاحة. ويُرجى إرسال الملاحظات خلال ثلاثة أيام عمل من استلام التقرير.</td></tr>
         <tr><td style="font-size:12pt; line-height:18px;"><strong style="font-family:arialbd; color:red; font-size:13pt;">هل تقدمون خدمات صيانة؟</strong><br/> لا، نحن جهة فحص فقط لضمان الحيادية والاستقلالية.</td></tr>
-        <tr><td style="font-size:12pt; line-height:18px;"><strong style="font-family:arialbd; color:red; font-size:13pt;">كيف يتم تعيين الفاحص؟</strong><br/> نقوم بترشيح فاحص متخصص بناءً على نوع العقار وتوزيع العمل، ويرفع التقرير ضمن نموذج GIS المعتمد.</td></tr>
-        <tr><td style="font-size:12pt; line-height:18px;"><strong style="font-family:arialbd; color:red; font-size:13pt;">لماذا الفحص مهم؟</strong><br/> لأنه يوفر عليك آلاف الدنانير ويكشف عيوب قد تكون خفية قبل الشراء أو الاستلام.</td></tr>
+        <tr><td style="font-size:12pt; line-height:18px;"><strong style="font-family:arialbd; color:red; font-size:13pt;">كيف يتم تعيين الفاحص؟</strong><br/> يُكلَّف فريق الفحص بحسب نوع العقار ونطاق الخدمة والتخصص المطلوب. وتُجمع الملاحظات والصور ونتائج الاختبارات، ثم تُراجع وتُنظَّم ضمن تقرير GIS قبل تسليمه للعميل.</td></tr>
+        <tr><td style="font-size:12pt; line-height:18px;"><strong style="font-family:arialbd; color:red; font-size:13pt;">لماذا الفحص مهم؟</strong><br/> لأنه يساعدك على فهم الحالة الظاهرة للعقار قبل الشراء أو الاستلام، من خلال توثيق الملاحظات ونتائج الاختبارات المنفذة وتحديد أولويات المعالجة، بما يدعم اتخاذ قرار أوضح.</td></tr>
     </table>
 </div>
 HTML,
@@ -1101,15 +1109,59 @@ HTML,
 
     private function resolveLogoPath(): ?string
     {
-        $candidates = [env('REPORT_LOGO_PATH'), 'images/logo.png', 'images/company-logo.png'];
+        // Prefer the new logo explicitly (ahead of REPORT_LOGO_PATH / legacy files).
+        $candidates = [
+            'images/newLog.jpeg',
+            'images/newLog.jpg',
+            env('REPORT_LOGO_PATH'),
+            'images/logo.png',
+            'images/company-logo.png',
+        ];
         foreach ($candidates as $candidate) {
-            if (!$candidate)
+            if (!$candidate) {
                 continue;
+            }
             $path = public_path($candidate);
-            if (is_file($path))
+            if (is_file($path)) {
                 return $path;
+            }
         }
+
         return null;
+    }
+
+    /** Replace the baked-in cover logo with newLog (portrait asset). */
+    private function overlayCoverLogo(TCPDF $pdf, float $pageW, float $coverTopPad): void
+    {
+        $logoPath = $this->resolveLogoPath();
+        if (!$logoPath || !is_readable($logoPath)) {
+            return;
+        }
+
+        try {
+            // Full-width white band clears old logo, bars, and decorative marks from the cover art.
+            $bandH = 78;
+            $pdf->SetFillColor(255, 255, 255);
+            $pdf->Rect(0, 0, $pageW, $coverTopPad + $bandH, 'F');
+
+            $logoW = 32;
+            $logoH = $logoW * (1474 / 1067); // ~44mm
+            $logoX = ($pageW - $logoW) / 2;
+            $logoY = 4 + $coverTopPad;
+
+            $pdf->Image($logoPath, $logoX, $logoY, $logoW, $logoH, '', '', '', false, 300);
+
+            $pdf->SetTextColor(128, 0, 0);
+            $pdf->SetFont($this->fontBold, '', 9);
+            $yText = $logoY + $logoH + 1;
+            $pdf->SetXY(0, $yText);
+            $pdf->Cell($pageW, 4.5, 'GIS VALUATION AND EVALUATION', 0, 1, 'C');
+            $pdf->SetFont($this->fontBold, '', 10);
+            $pdf->SetX(0);
+            $pdf->Cell($pageW, 5, 'جي إي إس للتقييم والتثمين العقاري', 0, 1, 'C');
+            $pdf->SetTextColor(0, 0, 0);
+        } catch (Throwable $e) {
+        }
     }
 
     /**
@@ -1283,7 +1335,8 @@ class ReportTCPDF extends TCPDF
             // Small logo on the top-left
             if ($this->logoPath && is_readable($this->logoPath)) {
                 try {
-                    $this->Image($this->logoPath, 14, 8, 30, 20, '', '', '', false, 300);
+                    // Portrait logo — keep small so it stays inside the header band.
+                    $this->Image($this->logoPath, 14, 5, 16, 0, '', '', '', false, 300);
                 } catch (Throwable $e) {
                 }
             }

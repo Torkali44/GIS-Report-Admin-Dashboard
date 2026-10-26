@@ -21,7 +21,9 @@ class InspectionReportWordGeneratorEn
     public function __construct()
     {
         $this->stampPath = public_path('images/GIS SIGN.png');
-        $this->logoPath = public_path('images/company-logo.png');
+        $this->logoPath = is_file(public_path('images/newLog.jpeg'))
+            ? public_path('images/newLog.jpeg')
+            : public_path('images/company-logo.png');
     }
 
     public function renderBinary(PropertyHouse $house): string
@@ -104,8 +106,7 @@ class InspectionReportWordGeneratorEn
         $headerCellLogo = $headerTable->addCell(3856);
         if (file_exists($this->logoPath)) {
             $headerCellLogo->addImage($this->logoPath, [
-                'width' => 90,
-                'height' => 36,
+                'width' => 55,
                 'alignment' => Jc::LEFT,
                 'wrappingStyle' => 'inline',
             ]);
@@ -127,8 +128,7 @@ class InspectionReportWordGeneratorEn
         // Cover
         if (file_exists($this->logoPath)) {
             $section->addImage($this->logoPath, [
-                'width' => 120,
-                'height' => 50,
+                'width' => 90,
                 'alignment' => Jc::CENTER,
                 'wrappingStyle' => 'inline',
             ]);
@@ -406,22 +406,22 @@ class InspectionReportWordGeneratorEn
         $section->addTextBreak(1);
 
         $section->addText('Who We Are', ['bold' => true, 'size' => 13], $pLeft);
-        $section->addText('At GIS, we believe property safety starts with the right decision. We provide comprehensive inspection of ready-built properties before purchase or occupancy, checking for visible technical defects and hidden risks.', $fNormalLg, array_merge($pLeft, ['spaceAfter' => 80]));
-        $section->addText('Our specialists use modern equipment and proven methods to deliver accurate, reliable reports that support sound residential and investment decisions.', $fNormalLg, array_merge($pLeft, ['spaceAfter' => 80]));
+        $section->addText('At GIS, we believe property safety starts with the right decision. We provide a comprehensive inspection of ready-built properties before purchase or occupancy, to record visible observations and defects at the time of the visit, using inspection equipment and preliminary tests within the agreed scope of service.', $fNormalLg, array_merge($pLeft, ['spaceAfter' => 80]));
+        $section->addText('We work through a specialized technical team and use appropriate inspection equipment to document findings and test results, and to prepare a report that describes the condition of inspected elements, observations, and recommendations — helping the client make a clearer purchase or occupancy decision.', $fNormalLg, array_merge($pLeft, ['spaceAfter' => 80]));
         $section->addText('We are among the leading property inspection firms in Bahrain, with a strong track record serving individuals, companies, and developers.', $fNormalLg, array_merge($pLeft, ['spaceAfter' => 100]));
 
         $section->addText('Main Services', $fRedUnder, $pLeft);
         $section->addText('GIS inspects ready-built properties across the following systems:', $fRedBold, array_merge($pLeft, ['spaceAfter' => 60]));
         foreach ([
-            '1. Electrical: Outlets, switches, panels, loads, and earthing.',
-            '2. Plumbing: Piping, drains, water pressure, tanks, heaters, and water quality.',
-            '3. Moisture & Leakage: Moisture readings, leak detection, and waterproofing.',
-            '4. Tanks: Thermal and water leakage checks to prevent contamination or ceiling damage.',
-            '5. Doors & Windows: Operation, hinges, frames, sealing, and finishes.',
-            '6. Ceilings & Walls: Cracks, moisture marks, finish quality, corners, and thermal insulation.',
+            '1. Electrical: Inspect accessible outlets, switches, panels, and visible connections; carry out electrical tests and measurements within the service scope; document results, observations, and inspection limits in the attached electrical report.',
+            '2. Plumbing: Inspect accessible piping, fittings, and sanitary fixtures; check drainage and operation within the service scope; document water pressure and salinity readings when taken; record any leaks or performance shortfalls observed during the inspection.',
+            '3. Moisture & Leakage: Record visible moisture and leak traces; use appropriate meters and tests within the inspection scope; note cases that need further investigation to identify the source.',
+            '4. Tanks: Inspect accessible tank parts, covers, and connections; record leak signs and visible cleanliness notes; water quality analysis is not performed.',
+            '5. Doors & Windows: Check opening/closing, handles, locks, and hinges; inspect frames, glass, and visible seals; record notes on fixing and finish.',
+            '6. Ceilings & Walls: Inspect cracks, moisture traces, and finish quality on accessible surfaces; document observations and measurements taken; note cases that require specialist assessment.',
             '7. Tiles & Flooring: Grouting, levelness, stability, and installation quality.',
-            '8. Safety Systems: CCTV, smoke detectors, and alarm sensors.',
-            '9. HVAC: AC units, air outlets, exhaust fans, and installation quality.',
+            '8. Safety Systems: Inspect available devices such as CCTV, smoke detectors, and alarm sensors; document operational tests performed; state devices that could not be tested.',
+            '9. HVAC: Inspect AC units, air outlets, exhaust fans, and accessible ducting; document operation and measurements taken; state parts that could not be inspected or tested.',
             '10. Parking & Facades: Surfaces, shading, garage doors, cracks, and expansion joints.',
         ] as $item) {
             $section->addText($item, $fNormalLg, array_merge($pLeft, ['spaceAfter' => 40]));
@@ -431,20 +431,18 @@ class InspectionReportWordGeneratorEn
         $section->addText('What Sets Us Apart', ['bold' => true, 'size' => 15, 'color' => 'C00000', 'underline' => 'single'], $pLeft);
         $section->addTextBreak(1);
 
-        $section->addText('GIS Guarantees', $fRedUnder, $pLeft);
-        $section->addText('• Coverage assurance: Comprehensive, accurate data per GIS standards.', $fBoldLg, array_merge($pLeft, ['spaceAfter' => 20]));
-        $section->addText('* Coverage assurance explained', $fGreenBold, array_merge($pLeft, ['spaceAfter' => 20]));
-        $section->addText('We report the visible condition of the property as thoroughly as possible using GIS technical criteria. This is not a legal or technical warranty of future condition or hidden defects.', $fNormal, array_merge($pLeft, ['spaceAfter' => 80]));
+        $section->addText('GIS Inspection & Documentation Methodology', $fRedUnder, $pLeft);
+        $section->addText('• Documenting inspection results:', $fBoldLg, array_merge($pLeft, ['spaceAfter' => 20]));
+        $section->addText('We prepare a report documenting observations on elements that were accessible and inspected at the time of the visit, supported by photos and appropriate recommendations, and clarifying inspection limits and elements that could not be inspected. The report describes the visible condition within the agreed scope of service and does not guarantee detection of all defects or the future condition of the property.', $fNormal, array_merge($pLeft, ['spaceAfter' => 80]));
 
-        $section->addText('• Safety assurance: Inspected items are checked for hazardous defects; manufacturer warranties are referenced when available.', $fBoldLg, array_merge($pLeft, ['spaceAfter' => 20]));
-        $section->addText('* Safety assurance explained', $fGreenBold, array_merge($pLeft, ['spaceAfter' => 20]));
-        $section->addText('This confirms no dangerous defects were observed in inspected elements at the time of visit. Where warranties exist (electrical, plumbing, HVAC, etc.), they are noted; GIS does not guarantee their validity.', $fNormal, array_merge($pLeft, ['spaceAfter' => 100]));
+        $section->addText('• Recording safety observations:', $fBoldLg, array_merge($pLeft, ['spaceAfter' => 20]));
+        $section->addText('We record visible safety observations on elements that could be inspected at the time of the visit, according to the service scope and tests performed, and we note what requires remediation or specialist inspection. Absence of a recorded observation does not mean the element is free of hidden or later defects.', $fNormal, array_merge($pLeft, ['spaceAfter' => 100]));
 
         $section->addText('Our Advantages', $fRedUnder, $pLeft);
         foreach ([
-            '• Fast response and inspection scheduling.',
+            '• Fast response and inspection completion.',
             '• Simple request and report delivery process.',
-            '• Photo documentation of observations and defects.',
+            '• Photo and technical documentation of observations during the inspection, including tests and measurements performed.',
             '• Professional, readable, detailed reports.',
             '• Organized archive for each property unit.',
         ] as $item) {
@@ -454,9 +452,9 @@ class InspectionReportWordGeneratorEn
 
         $section->addText('Inspection & Delivery Process', $fRedUnder, $pLeft);
         foreach ([
-            '• Inspection typically takes 2 hours to 2 days depending on size and complexity.',
-            '• Final report is delivered within 5 business days after quality review.',
-            '• Client comments must be sent within 3 days of receipt for corrections, if needed.',
+            '• Inspection typically takes 2 hours to 2 days depending on size and system complexity.',
+            '• Final report is delivered within five business days from completion of the site inspection, after technical review.',
+            '• Please send any questions or comments on the report within three business days of receipt for review, clarification, and correction of verified errors. Any technical revisions are based on inspection findings and available evidence.',
         ] as $item) {
             $section->addText($item, $fNormalLg, array_merge($pLeft, ['spaceAfter' => 40]));
         }
@@ -468,10 +466,15 @@ class InspectionReportWordGeneratorEn
         $section->addText('1. Engineering & Technical Documents', $fRedHeader, $pLeft);
         foreach ([
             '• Building permit',
-            '• Approved drawings (architectural, structural, MEP)',
-            '• Structural warranty certificate (often 10 years)',
+            '• Approved drawings (architectural, structural, mechanical, electrical)',
+            '• Structural warranty certificate, if available, stating issuer, duration, and scope',
             '• Soil test reports',
-            '• Material/system warranties (plumbing, electrical, HVAC, waterproofing, aluminum & glass)',
+            '• Material/system warranties such as:',
+            '• Plumbing warranty',
+            '• Electrical warranty',
+            '• HVAC systems warranty',
+            '• Waterproofing warranty',
+            '• Aluminum & glass warranty',
         ] as $item) {
             $section->addText($item, $fNormalXl, array_merge($pLeft, ['spaceAfter' => 40]));
         }
@@ -492,27 +495,29 @@ class InspectionReportWordGeneratorEn
             '• Ground bearing certificate (if available)',
             '• Approximate property age (year built or handed over)',
             '• Copy of buyer / client ID card',
-            '• Main contractor agreement and material warranties (optional)',
+            '• Main contractor agreement (optional)',
+            '• Building material warranties (optional)',
         ] as $item) {
             $section->addText($item, $fNormalXl, array_merge($pLeft, ['spaceAfter' => 40]));
         }
 
         $section->addPageBreak();
         $section->addText('Important Disclaimer — Limits of Liability', $fRedTitle, $pLeft);
-        $section->addText('GIS performs services with maximum accuracy and impartiality using technical tools and qualified experts. However, GIS accepts no legal or financial liability for damages arising from the inspection process, during or after the site visit.', $fNormalXl, array_merge($pLeft, ['spaceAfter' => 60]));
-        $section->addText('GIS is not responsible for disputes between the client and third parties such as contractors or developers; our role is diagnosis and documentation only.', $fNormalXl, array_merge($pLeft, ['spaceAfter' => 100]));
+        $section->addText('GIS performs its services with the highest accuracy and impartiality, using technical tools and qualified experts.', $fNormalXl, array_merge($pLeft, ['spaceAfter' => 60]));
+        $section->addText('Inspection work is carried out with professional care within the agreed scope of service. Company responsibilities are defined by the contract and applicable laws; stating inspection limits is not an absolute waiver of liability.', $fNormalXl, array_merge($pLeft, ['spaceAfter' => 60]));
+        $section->addText('The service is limited to inspection, documentation, and report preparation within the agreed scope. It does not include managing disputes between the client and contractor or developer, representing any party, or supervising repairs, except under a separate agreement and within the required competence and licenses.', $fNormalXl, array_merge($pLeft, ['spaceAfter' => 100]));
 
         $section->addText('* Important notice:', $fRedHeader, $pLeft);
-        $section->addText('GIS inspects and documents the visible condition of the property at the time of visit only. The report is not a future warranty of property condition or later developments. GIS responsibility ends when the team leaves the site unless a follow-up service was agreed in advance.', $fBoldLg, array_merge($pLeft, ['spaceAfter' => 100]));
+        $section->addText('GIS inspects and documents the visible condition of the property at the time of the visit only. The report is not a future warranty of property condition or later developments. The report reflects the condition of inspected elements at the time of the visit; the service does not include follow-up of later changes or verification of repairs, except under a separate agreement for follow-up or re-inspection.', $fBoldLg, array_merge($pLeft, ['spaceAfter' => 100]));
 
         $section->addText('Frequently Asked Questions', $fRedUnder, $pLeft);
         $faqTable = $section->addTable('BorderTable');
         foreach ([
-            ['Can I get a refund?', 'Yes, subject to an administrative fee if cancellation is made at least 24 hours before the inspection appointment.'],
-            ['Can the report be revised?', 'Yes — comments are accepted within 3 days of receiving the report only.'],
+            ['Can I get a refund?', 'Cancellation and refund requests are reviewed under the signed contract terms, with cancellation fees and any refundable amount clarified where applicable.'],
+            ['Can the report be revised?', 'Yes — comments are reviewed and verified errors are corrected, provided technical revisions are based on inspection findings and available evidence. Please send comments within three business days of receiving the report.'],
             ['Do you provide maintenance?', 'No — we are an independent inspection body only.'],
-            ['How is the inspector assigned?', 'We assign a specialist based on property type and workload, using the approved GIS report format.'],
-            ['Why is inspection important?', 'It can save thousands in unexpected repairs and reveals hidden defects before purchase or handover.'],
+            ['How is the inspector assigned?', 'The inspection team is assigned based on property type, service scope, and required specialty. Observations, photos, and test results are collected, then reviewed and organized into the GIS report before delivery to the client.'],
+            ['Why is inspection important?', 'It helps you understand the visible condition of the property before purchase or handover by documenting observations and test results and prioritizing remediation — supporting a clearer decision.'],
         ] as $faq) {
             $faqTable->addRow();
             $cell = $faqTable->addCell(9638);
